@@ -6,14 +6,13 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import XCTest
 @testable import WeatherApp
+import XCTest
 
 final class LocationPermissionsViewModelTest: XCTestCase {
-
     private var settingsOpener: SettingsOpenMock!
     private var locationPermissionsViewModel: LocationPermissionViewModel!
-    
+
     override func setUpWithError() throws {
         settingsOpener = SettingsOpenMock()
         locationPermissionsViewModel = LocationPermissionViewModel(settingsOpener: settingsOpener)
@@ -24,5 +23,4 @@ final class LocationPermissionsViewModelTest: XCTestCase {
         locationPermissionsViewModel.openSettings()
         XCTAssertEqual(1, settingsOpener.openCalled)
     }
-
 }

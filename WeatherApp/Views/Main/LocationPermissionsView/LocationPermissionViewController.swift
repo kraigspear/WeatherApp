@@ -9,11 +9,9 @@
 import UIKit
 
 final class LocationPermissionViewController: UIViewController {
-    
     private let viewModel = LocationPermissionViewModel()
-    
-    @IBAction func openInSettingsAction(_ sender: Any) {
+
+    @IBAction func openInSettingsAction(_: Any) {
         viewModel.openSettings()
     }
-    
 }

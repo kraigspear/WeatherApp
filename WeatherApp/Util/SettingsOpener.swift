@@ -20,10 +20,9 @@ final class SettingsOpener: SettingsOpenable {
             // I don't think it would be better to ignore
             preconditionFailure("Not able to convert UIApplication.openSettingsURLString to a URL?")
         }
-        
+
         if UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url, options: [:])
         }
-        
     }
 }
