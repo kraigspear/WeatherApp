@@ -13,6 +13,8 @@ import Foundation
 @testable import WeatherApp
 
 final class LocationManageableMock: LocationManageable {
+    var currentLocation: AnyPublisher<CLLocation?, Never>
+
     private(set) var requestLocationCalled = 0
     func requestLocation() {
         requestLocationCalled += 1
@@ -37,9 +39,9 @@ final class LocationManageableMock: LocationManageable {
         requestWhenInUseAuthorizationCalled += 1
     }
 
-    private var currentLocationValue = CurrentValueSubject<CLLocation?, Never>(nil)
+    private var currentLocationValue = CurrentValueSubject<CLLocation?, Error>(nil)
 
-    var currentLocation: AnyPublisher<CLLocation?, Never> {
+    var currentLocation: AnyPublisher<CLLocation?, Error> {
         currentLocationValue.eraseToAnyPublisher()
     }
 

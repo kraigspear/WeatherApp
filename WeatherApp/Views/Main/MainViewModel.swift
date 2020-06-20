@@ -33,12 +33,6 @@ final class MainViewModel: ObservableObject {
 
         locationManager.authorizationStatus.assign(to: \.authorizationStatus, on: self)
             .store(in: &cancels)
-
-        locationManager.currentLocation.sink { location in
-            if let location = location {
-                weatherDataFetcher.fetchWeatherForCoordinate(location.coordinate)
-            }
-        }.store(in: &cancels)
     }
 
     /**
@@ -47,6 +41,12 @@ final class MainViewModel: ObservableObject {
      have not been granted
      */
     @Published var isPermissionViewHidden = false
+
+    private var errorSubject = PassthroughSubject<Error?, Never>()
+
+    public var error: AnyPublisher<Error?, Never> {
+        errorSubject.eraseToAnyPublisher()
+    }
 
     /// Verify that all ViewModel state is fresh.
     func reload() {
@@ -87,9 +87,27 @@ final class MainViewModel: ObservableObject {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
         case .authorizedWhenInUse, .authorizedAlways:
-            locationManager.requestLocation()
+            requestLocation()
         default:
             break
+        }
+    }
+
+    private var requestLocationCancel: AnyCancellable?
+    private func requestLocation() {
+        requestLocationCancel = locationManager.requestLocation().sink(receiveCompletion: { [weak self] completed in
+
+            defer { self?.requestLocationCancel = nil }
+
+            switch completed {
+            case let .failure(error):
+                self?.errorSubject.send(error)
+            case .finished:
+                break
+            }
+
+        }) { [weak self] currentLocation in
+            self?.weatherDataFetcher.fetchWeatherForCoordinate(currentLocation.coordinate)
         }
     }
 }

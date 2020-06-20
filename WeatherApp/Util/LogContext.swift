@@ -13,5 +13,7 @@ import os.log
 struct LogContext {
     static let subsystem = "com.spearware.weatherapp"
 
-    static let mainViewModel = OSLog(subsystem: subsystem, category: "MainViewModel")
+    static let mainViewModel = OSLog(subsystem: subsystem, category: "🤖MainViewModel")
+    static let locationManager = OSLog(subsystem: subsystem, category: "📍LocationManager")
+    static let weatherDataFetcher = OSLog(subsystem: subsystem, category: "☔️WeatherDataFetcher")
 }
