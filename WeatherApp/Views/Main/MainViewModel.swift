@@ -6,7 +6,7 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import Combine
 import os.log
 
@@ -15,9 +15,18 @@ final class MainViewModel: ObservableObject {
     private let log = LogContext.mainViewModel
     
     private let locationManager: LocationManageable
+    private let notificationPublisher: NotificationPublishable
     
-    init(locationManager: LocationManageable = LocationManager()) {
+    private var cancels = Set<AnyCancellable>()
+    
+    init(locationManager: LocationManageable = LocationManager(),
+         notificationPublisher: NotificationPublishable = NotificationPublishers()) {
         self.locationManager = locationManager
+        self.notificationPublisher = notificationPublisher
+        
+        notificationPublisher.appWillEnterForeground.sink {[weak self] _ in
+            self?.reload()
+        }.store(in: &cancels)
     }
     
     /**

@@ -12,9 +12,10 @@ import Foundation
 final class LocationManageableMock: LocationManageable {
     
     private var locationServicesEnabledValue = false
-    
+    private (set) var locationServicesEnabledCalled = 0
     var locationServicesEnabled: Bool {
-        locationServicesEnabledValue
+        locationServicesEnabledCalled += 1
+        return locationServicesEnabledValue
     }
     
     

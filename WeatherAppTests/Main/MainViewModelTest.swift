@@ -12,17 +12,18 @@ import XCTest
 final class MainViewModelTest: XCTestCase {
 
     private var locationManageableMock: LocationManageableMock!
+    private var notificationMock: NotificationPublishableMock!
+    
     private var mainViewModel: MainViewModel!
     
     override func setUpWithError() throws {
         locationManageableMock = LocationManageableMock()
-        mainViewModel = MainViewModel(locationManager: locationManageableMock)
+        notificationMock = NotificationPublishableMock()
+        
+        mainViewModel = MainViewModel(locationManager: locationManageableMock,
+                                      notificationPublisher: notificationMock)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-    
     func testLocationServiceTurnedOffIsShownWhenLocationServicesAreNotOn() {
         locationManageableMock.setupForlocationServicesEnabled(false)
         mainViewModel.reload()
@@ -33,6 +34,18 @@ final class MainViewModelTest: XCTestCase {
         locationManageableMock.setupForlocationServicesEnabled(true)
         mainViewModel.reload()
         XCTAssertTrue(mainViewModel.isPermissionViewHidden)
+    }
+    
+    /**
+     When the App enters the foreground all state should be checked including
+     if the LocationServices view should be shown
+     */
+    func testLocationServicesEnabledIsCheckedWhenAppEnteresForeground() {
+        XCTAssertEqual(0, locationManageableMock.locationServicesEnabledCalled)
+        mainViewModel.reload()
+        XCTAssertEqual(1, locationManageableMock.locationServicesEnabledCalled)
+        notificationMock.sendAppWillEnterForeground()
+        XCTAssertEqual(2, locationManageableMock.locationServicesEnabledCalled)
     }
 
     /**
