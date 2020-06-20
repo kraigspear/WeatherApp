@@ -1,5 +1,5 @@
 //
-//  SettingsOpenMock.swift
+//  WeatherDataFetchableMock.swift
 //  WeatherAppTests
 //
 //  Created by Kraig Spear on 6/20/20.
@@ -9,10 +9,10 @@
 import Foundation
 @testable import WeatherApp
 
-final class SettingsOpenMock: SettingsOpenable {
-    private(set) var openCalled = 0
+final class WeatherDataFetchableMock: WeatherDataFetchable {
+    private(set) var fetchCalled = 0
 
-    func open() {
-        openCalled += 1
+    func fetch() {
+        fetchCalled += 1
     }
 }

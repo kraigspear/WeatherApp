@@ -6,20 +6,18 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import UIKit
 import Combine
+import UIKit
 
 protocol NotificationPublishable {
     var appWillEnterForeground: AnyPublisher<Void, Never> { get }
 }
 
 final class NotificationPublishers: NotificationPublishable {
-    
     var appWillEnterForeground: AnyPublisher<Void, Never> {
         return NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
-            .flatMap { notification -> AnyPublisher<Void, Never> in
-                return Just<Void>(()).eraseToAnyPublisher()
-        }.eraseToAnyPublisher()
+            .flatMap { _ -> AnyPublisher<Void, Never> in
+                Just<Void>(()).eraseToAnyPublisher()
+            }.eraseToAnyPublisher()
     }
-    
 }

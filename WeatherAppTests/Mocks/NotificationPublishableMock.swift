@@ -6,22 +6,19 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Foundation
 import Combine
+import Foundation
 
 @testable import WeatherApp
 
 final class NotificationPublishableMock: NotificationPublishable {
-    
     private var appWillEnterForegroundPassThrough = PassthroughSubject<Void, Never>()
-    
+
     var appWillEnterForeground: AnyPublisher<Void, Never> {
         appWillEnterForegroundPassThrough.eraseToAnyPublisher()
     }
-    
-    func sendAppWillEnterForeground() {
-        appWillEnterForegroundPassThrough.send( () )
-    }
-    
-}
 
+    func sendAppWillEnterForeground() {
+        appWillEnterForegroundPassThrough.send(())
+    }
+}
