@@ -24,8 +24,10 @@ import Foundation
 protocol LocationManageable {
     var locationServicesEnabled: Bool { get }
     var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> { get }
+    var currentLocation: AnyPublisher<CLLocation?, Never> { get }
+
     func requestWhenInUseAuthorization()
-    // func requestLocation()
+    func requestLocation()
 }
 
 /**
@@ -33,6 +35,12 @@ protocol LocationManageable {
  */
 final class LocationManager: NSObject, LocationManageable {
     private let cllocationManager = CLLocationManager()
+
+    private var currentLocationValueSubject = CurrentValueSubject<CLLocation?, Never>(nil)
+
+    public var currentLocation: AnyPublisher<CLLocation?, Never> {
+        currentLocationValueSubject.eraseToAnyPublisher()
+    }
 
     private var authorizationCurrentValueSubject = CurrentValueSubject<CLAuthorizationStatus, Never>(CLLocationManager.authorizationStatus())
 
@@ -46,5 +54,20 @@ final class LocationManager: NSObject, LocationManageable {
 
     public func requestWhenInUseAuthorization() {
         cllocationManager.requestWhenInUseAuthorization()
+    }
+
+    public func requestLocation() {
+        cllocationManager.requestLocation()
+    }
+}
+
+extension LocationManager: CLLocationManagerDelegate {
+    func locationManager(_: CLLocationManager,
+                         didChangeAuthorization status: CLAuthorizationStatus) {
+        authorizationCurrentValueSubject.value = status
+    }
+
+    func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        currentLocationValueSubject.value = locations.first
     }
 }
