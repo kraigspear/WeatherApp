@@ -95,7 +95,7 @@ extension LocationManager: CLLocationManagerDelegate {
     }
 
     func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        os_log("didUpdateLocations count: %d",
+        os_log(": %d",
                log: log,
                type: .debug,
                locations.count)
@@ -112,9 +112,6 @@ extension LocationManager: CLLocationManagerDelegate {
             return
         }
 
-        // We assume that if we're receiving a location then the publisher is active.
-        // If not, we could have a logic error.
-        assert(requestLocationPublisher != nil, "requestLocationPublisher is nil?")
         requestLocationPublisher?.send(firstLocation)
     }
 

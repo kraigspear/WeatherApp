@@ -44,6 +44,10 @@ final class MainViewModel: ObservableObject {
 
     /// Temperature to display in the View
     @Published var temperature = ""
+    @Published var locationName = ""
+
+    /// Should the visual state showing "busy" be shown
+    @Published var isBusy = false
 
     private var errorSubject = PassthroughSubject<Error?, Never>()
 
@@ -54,24 +58,20 @@ final class MainViewModel: ObservableObject {
     /// Current weather conditions to display
     private var currentConditions: CurrentConditions? {
         didSet {
-            populate(currentConditions: currentConditions)
+            if let currentConditions = currentConditions {
+                populate(currentConditions: currentConditions)
+            }
         }
     }
 
     /**
      Populate the view from currentConditions
 
-     If currentConditions is nil, then display values are cleard out
-
      - parameter currentConditions: Conditions value to populate
      */
-    private func populate(currentConditions: CurrentConditions?) {
-        guard let currentConditions = currentConditions else {
-            temperature = ""
-            return
-        }
-
+    private func populate(currentConditions: CurrentConditions) {
         temperature = "\(Int(currentConditions.main.temp))℉"
+        locationName = currentConditions.name
     }
 
     /// Verify that all ViewModel state is fresh.
@@ -93,11 +93,18 @@ final class MainViewModel: ObservableObject {
     private let locationManager: LocationManageable
     private var authorizationStatus = CLAuthorizationStatus.notDetermined {
         didSet {
+            os_log("authorizationStatus set, checkLocationPermissions",
+                   log: log,
+                   type: .debug)
             checkLocationPermissions()
         }
     }
 
     private func checkLocationPermissions() {
+        os_log("checkLocationPermissions",
+               log: log,
+               type: .debug)
+
         if !locationManager.locationServicesEnabled {
             os_log("Location services turned off on device",
                    log: log,
@@ -113,6 +120,11 @@ final class MainViewModel: ObservableObject {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
         case .authorizedWhenInUse, .authorizedAlways:
+
+            os_log("Permissions authorizedWhenInUse or authorizedAlways, requesting location",
+                   log: log,
+                   type: .debug)
+
             requestLocation()
         case .denied, .restricted:
             isPermissionViewHidden = false
@@ -123,30 +135,81 @@ final class MainViewModel: ObservableObject {
 
     private var requestLocationCancel: AnyCancellable?
     private func requestLocation() {
+        os_log("requestLocation",
+               log: log,
+               type: .debug)
+
+        precondition(authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways, "Invalid authorization status")
+
+        if requestLocationCancel != nil {
+            // There are various events that might trigger looking for the location including
+            // 1. Forgound
+            // 2. Permission changes
+            // 3. Startup
+
+            // Calling locationManager.requestLocation will cancel if one is inflight, however
+            // it's more efficiant to ignore additinal request if one is active
+
+            os_log("Active requestLocation, skipping",
+                   log: log,
+                   type: .debug)
+
+            return
+        }
+
+        isBusy = true
+
         requestLocationCancel = locationManager.requestLocation().sink(receiveCompletion: { [weak self] completed in
 
-            defer { self?.requestLocationCancel = nil }
+            guard let self = self else { return }
+
+            self.isBusy = false
+
+            defer { self.requestLocationCancel = nil }
 
             switch completed {
             case let .failure(error):
-                self?.errorSubject.send(error)
+
+                os_log("requestLocation completed with error: %s",
+                       log: self.log,
+                       type: .debug,
+                       error.localizedDescription)
+
+                self.errorSubject.send(error)
             case .finished:
-                break
+                os_log("requestLocation completed successfully",
+                       log: self.log,
+                       type: .debug)
             }
 
         }) { [weak self] currentLocation in
-            self?.updateWeatherAt(coordinate: currentLocation.coordinate)
+            guard let self = self else { return }
+
+            os_log("current location retrived: lat: %f lng: %f",
+                   log: self.log,
+                   type: .debug,
+                   currentLocation.coordinate.latitude,
+                   currentLocation.coordinate.longitude)
+
+            self.updateWeatherAt(coordinate: currentLocation.coordinate)
         }
     }
 
     private var fetchWeatherForCoordinateCancel: AnyCancellable?
     private func updateWeatherAt(coordinate: CLLocationCoordinate2D) {
+        os_log("Fetching latest current conditions",
+               log: log,
+               type: .debug)
+
+        isBusy = true
+
         fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
-            .retry(2)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completed in
 
                 guard let self = self else { return }
+
+                self.isBusy = false
 
                 switch completed {
                 case let .failure(error):

@@ -12,6 +12,10 @@ import XCTest
 
 @testable import WeatherApp
 
+private enum SomeError: Error {
+    case error
+}
+
 final class MainViewModelTest: XCTestCase {
     private var locationManageableMock: LocationManageableMock!
     private var notificationMock: NotificationPublishableMock!
@@ -103,7 +107,7 @@ final class MainViewModelTest: XCTestCase {
 
         mainViewModel.reload()
         // Verify permissions were not asked for
-        XCTAssertEqual(2, locationManageableMock.requestLocationCalled)
+        XCTAssertEqual(1, locationManageableMock.requestLocationCalled)
     }
 
     func testLocationNotRequestedWhenLocationPermissionsIsNotDeterminded() {
@@ -159,6 +163,29 @@ final class MainViewModelTest: XCTestCase {
         locationManageableMock.requestLocationSuccess(location: location)
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectTemperatureSet], timeout: 1))
+    }
+
+    func testErrorIsShownWhenRefreshWeatherFails() {
+        locationManageableMock.setupForlocationServicesEnabled(true)
+        locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
+        let fetchWeatherResult = FetchWeatherForCoordinateResult.failure(SomeError.error)
+        weatherDataFetchMock.setupForfetchWeatherForCoordinate(result: fetchWeatherResult)
+
+        let lat = 42.9634
+        let lng = -85.6681
+
+        let location = CLLocation(latitude: lat, longitude: lng)
+
+        let expectError = expectation(description: "error")
+
+        errorCancel = mainViewModel.error.sink { _ in
+            expectError.fulfill()
+        }
+
+        mainViewModel.reload()
+        locationManageableMock.requestLocationSuccess(location: location)
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectError], timeout: 1))
     }
 
     private var errorCancel: AnyCancellable?

@@ -38,6 +38,7 @@ final class MainViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.title = NSLocalizedString("Current Temperature", comment: "")
     }
 
     override func viewWillAppear(_ animated: Bool) {
