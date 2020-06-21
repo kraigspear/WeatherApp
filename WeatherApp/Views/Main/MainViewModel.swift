@@ -49,6 +49,16 @@ final class MainViewModel: ObservableObject {
     /// Should the visual state showing "busy" be shown
     @Published var isBusy = false
 
+    /// Bool that indicates that if the forecast button should be enabled
+    @Published var isForecastButtonEnabled = false
+
+    /// Coordinate of the location that has been loaded
+    private(set) var loadedCoordinate: CLLocationCoordinate2D? {
+        didSet {
+            isForecastButtonEnabled = loadedCoordinate != nil
+        }
+    }
+
     private var errorSubject = PassthroughSubject<Error?, Never>()
 
     public var error: AnyPublisher<Error?, Never> {
@@ -202,6 +212,7 @@ final class MainViewModel: ObservableObject {
                type: .debug)
 
         isBusy = true
+        loadedCoordinate = nil
 
         fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
             .receive(on: DispatchQueue.main)
@@ -222,6 +233,7 @@ final class MainViewModel: ObservableObject {
                     os_log("Success getting current conditions",
                            log: self.log,
                            type: .debug)
+                    self.loadedCoordinate = coordinate
                 }
 
             }) { [weak self] currentConditions in

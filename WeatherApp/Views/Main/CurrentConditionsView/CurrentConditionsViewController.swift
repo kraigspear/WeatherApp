@@ -26,6 +26,20 @@ final class CurrentConditionsViewController: UIViewController {
         sinkToMainViewModel()
     }
 
+    override func prepare(for segue: UIStoryboardSegue, sender _: Any?) {
+        guard let identifier = segue.identifier else { return }
+
+        if identifier == "forecast" {
+            let forecastViewController = segue.destination as! ForecastViewController
+
+            if let loadedCoordinate = mainViewModel.loadedCoordinate {
+                forecastViewController.coordinate = loadedCoordinate
+            } else {
+                assertionFailure("loadedCoordinate should be been assigned")
+            }
+        }
+    }
+
     private func sinkToMainViewModel() {
         guard !isUnitTest else { return }
 
