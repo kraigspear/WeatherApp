@@ -13,11 +13,22 @@ import Foundation
 @testable import WeatherApp
 
 final class LocationManageableMock: LocationManageable {
-    var currentLocation: AnyPublisher<CLLocation?, Never>
-
     private(set) var requestLocationCalled = 0
-    func requestLocation() {
+
+    private var requestLocationPassthroughSubject = PassthroughSubject<CLLocation, Error>()
+
+    func requestLocationSuccess(location: CLLocation) {
+        requestLocationPassthroughSubject.send(location)
+        requestLocationPassthroughSubject.send(completion: .finished)
+    }
+
+    func requestLocationFailed(error: Error) {
+        requestLocationPassthroughSubject.send(completion: .failure(error))
+    }
+
+    func requestLocation() -> AnyPublisher<CLLocation, Error> {
         requestLocationCalled += 1
+        return requestLocationPassthroughSubject.eraseToAnyPublisher()
     }
 
     private var locationServicesEnabledValue = false
@@ -39,12 +50,6 @@ final class LocationManageableMock: LocationManageable {
         requestWhenInUseAuthorizationCalled += 1
     }
 
-    private var currentLocationValue = CurrentValueSubject<CLLocation?, Error>(nil)
-
-    var currentLocation: AnyPublisher<CLLocation?, Error> {
-        currentLocationValue.eraseToAnyPublisher()
-    }
-
     // MARK: - Setups
 
     func setupForlocationServicesEnabled(_ value: Bool) {
@@ -57,9 +62,5 @@ final class LocationManageableMock: LocationManageable {
 
     func updateAuthorizationStatus(to status: CLAuthorizationStatus) {
         authorizationStatusValue.value = status
-    }
-
-    func setupForCurrentLocation(_ currentLocation: CLLocation) {
-        currentLocationValue.value = currentLocation
     }
 }

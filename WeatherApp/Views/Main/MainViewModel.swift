@@ -88,8 +88,10 @@ final class MainViewModel: ObservableObject {
             locationManager.requestWhenInUseAuthorization()
         case .authorizedWhenInUse, .authorizedAlways:
             requestLocation()
-        default:
-            break
+        case .denied, .restricted:
+            isPermissionViewHidden = false
+        @unknown default:
+            fatalError("Handle new authorizationStatus")
         }
     }
 

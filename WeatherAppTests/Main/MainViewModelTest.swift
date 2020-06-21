@@ -6,6 +6,7 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
+import Combine
 import CoreLocation
 import XCTest
 
@@ -28,6 +29,10 @@ final class MainViewModelTest: XCTestCase {
                                       weatherDataFetcher: weatherDataFetchMock)
     }
 
+    override func tearDown() {
+        errorCancel = nil
+    }
+
     func testLocationServiceTurnedOffIsShownWhenLocationServicesAreNotOn() {
         locationManageableMock.setupForlocationServicesEnabled(false)
         mainViewModel.reload()
@@ -38,6 +43,20 @@ final class MainViewModelTest: XCTestCase {
         locationManageableMock.setupForlocationServicesEnabled(true)
         mainViewModel.reload()
         XCTAssertTrue(mainViewModel.isPermissionViewHidden)
+    }
+
+    func testLocationServiceTurnedOffIsShownWhenPermissionsDenied() {
+        locationManageableMock.setupForlocationServicesEnabled(true)
+        locationManageableMock.setupForAuthorizationStatus(is: .denied)
+        mainViewModel.reload()
+        XCTAssertFalse(mainViewModel.isPermissionViewHidden)
+    }
+
+    func testLocationServiceTurnedOffIsShownWhenPermissionsRestricted() {
+        locationManageableMock.setupForlocationServicesEnabled(true)
+        locationManageableMock.setupForAuthorizationStatus(is: .restricted)
+        mainViewModel.reload()
+        XCTAssertFalse(mainViewModel.isPermissionViewHidden)
     }
 
     /**
@@ -113,16 +132,50 @@ final class MainViewModelTest: XCTestCase {
      2. Weather data is retirved for that location
      */
     func testWeatherDataIsRefreshedWhenLocationIsReceived() {
+        locationManageableMock.setupForlocationServicesEnabled(true)
+        locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
+
         let lat = 42.9634
         let lng = -85.6681
 
         let location = CLLocation(latitude: lat, longitude: lng)
 
-        locationManageableMock.setupForCurrentLocation(location)
-        XCTAssertEqual(1, weatherDataFetchMock.fetchCalled)
+        let expectCalled = expectation(description: "fetchCalled")
 
-        XCTAssertNotNil(weatherDataFetchMock.fetchedCoordinate)
-        XCTAssertEqual(lat, weatherDataFetchMock.fetchedCoordinate!.latitude)
-        XCTAssertEqual(lng, weatherDataFetchMock.fetchedCoordinate!.longitude)
+        weatherDataFetchMock.fetchWeatherForCoordinateCalled = { fetchedCoordinate in
+            XCTAssertEqual(lat, fetchedCoordinate.latitude)
+            XCTAssertEqual(lng, fetchedCoordinate.longitude)
+            expectCalled.fulfill()
+        }
+
+        mainViewModel.reload()
+        locationManageableMock.requestLocationSuccess(location: location)
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectCalled], timeout: 1))
+    }
+
+    private var errorCancel: AnyCancellable?
+
+    func testErrorIsReceivedWhenRequestLocationFails() {
+        enum RequestError: Error {
+            case whoops
+        }
+
+        locationManageableMock.setupForlocationServicesEnabled(true)
+        locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
+
+        weatherDataFetchMock.fetchWeatherForCoordinateCalled = { _ in
+            XCTFail("fetch not expected")
+        }
+
+        let expectError = expectation(description: "error")
+
+        errorCancel = mainViewModel.error.sink { _ in
+            expectError.fulfill()
+        }
+
+        mainViewModel.reload()
+        locationManageableMock.requestLocationFailed(error: RequestError.whoops)
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectError], timeout: 1))
     }
 }

@@ -12,10 +12,8 @@ import Foundation
 @testable import WeatherApp
 
 final class WeatherDataFetchableMock: WeatherDataFetchable {
-    private(set) var fetchCalled = 0
-    private(set) var fetchedCoordinate: CLLocationCoordinate2D?
+    var fetchWeatherForCoordinateCalled: ((CLLocationCoordinate2D) -> Void)?
     func fetchWeatherForCoordinate(_ coordinate: CLLocationCoordinate2D) {
-        fetchCalled += 1
-        fetchedCoordinate = coordinate
+        fetchWeatherForCoordinateCalled?(coordinate)
     }
 }

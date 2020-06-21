@@ -28,7 +28,6 @@ protocol LocationManageable {
     var locationServicesEnabled: Bool { get }
 
     var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> { get }
-    var currentLocation: CurrentLocationPublisher { get }
 
     func requestWhenInUseAuthorization()
 
@@ -47,12 +46,6 @@ final class LocationManager: NSObject, LocationManageable {
     }
 
     private let cllocationManager = CLLocationManager()
-
-    private var currentLocationValueSubject = CurrentValueSubject<CLLocation?, Error>(nil)
-
-    public var currentLocation: CurrentLocationPublisher {
-        currentLocationValueSubject.eraseToAnyPublisher()
-    }
 
     private var authorizationCurrentValueSubject = CurrentValueSubject<CLAuthorizationStatus, Never>(CLLocationManager.authorizationStatus())
 
