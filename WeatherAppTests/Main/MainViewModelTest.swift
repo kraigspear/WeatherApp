@@ -31,6 +31,7 @@ final class MainViewModelTest: XCTestCase {
 
     override func tearDown() {
         errorCancel = nil
+        temperatureSetCancel = nil
     }
 
     func testLocationServiceTurnedOffIsShownWhenLocationServicesAreNotOn() {
@@ -127,31 +128,37 @@ final class MainViewModelTest: XCTestCase {
         XCTAssertEqual(1, locationManageableMock.requestLocationCalled)
     }
 
+    private var temperatureSetCancel: AnyCancellable?
     /**
      1. Location manager provides a location
      2. Weather data is retirved for that location
+     3. Weather data is populated
      */
     func testWeatherDataIsRefreshedWhenLocationIsReceived() {
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
+
+        let currentConditions: CurrentConditions = loadModel(from: "CurrentConditions")
+        let fetchWeatherResult = FetchWeatherForCoordinateResult.success(currentConditions)
+        weatherDataFetchMock.setupForfetchWeatherForCoordinate(result: fetchWeatherResult)
 
         let lat = 42.9634
         let lng = -85.6681
 
         let location = CLLocation(latitude: lat, longitude: lng)
 
-        let expectCalled = expectation(description: "fetchCalled")
+        let expectTemperatureSet = expectation(description: "temperatureSet")
 
-        weatherDataFetchMock.fetchWeatherForCoordinateCalled = { fetchedCoordinate in
-            XCTAssertEqual(lat, fetchedCoordinate.latitude)
-            XCTAssertEqual(lng, fetchedCoordinate.longitude)
-            expectCalled.fulfill()
+        temperatureSetCancel = mainViewModel.$temperature.sink { temperature in
+            if temperature == "70℉" {
+                expectTemperatureSet.fulfill()
+            }
         }
 
         mainViewModel.reload()
         locationManageableMock.requestLocationSuccess(location: location)
 
-        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectCalled], timeout: 1))
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectTemperatureSet], timeout: 1))
     }
 
     private var errorCancel: AnyCancellable?
@@ -163,10 +170,6 @@ final class MainViewModelTest: XCTestCase {
 
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
-
-        weatherDataFetchMock.fetchWeatherForCoordinateCalled = { _ in
-            XCTFail("fetch not expected")
-        }
 
         let expectError = expectation(description: "error")
 

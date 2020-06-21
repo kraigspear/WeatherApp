@@ -16,4 +16,5 @@ struct LogContext {
     static let mainViewModel = OSLog(subsystem: subsystem, category: "🤖MainViewModel")
     static let locationManager = OSLog(subsystem: subsystem, category: "📍LocationManager")
     static let weatherDataFetcher = OSLog(subsystem: subsystem, category: "☔️WeatherDataFetcher")
+    static let network = OSLog(subsystem: subsystem, category: "🌎Network")
 }

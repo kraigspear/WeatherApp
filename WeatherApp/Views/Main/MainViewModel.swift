@@ -42,10 +42,36 @@ final class MainViewModel: ObservableObject {
      */
     @Published var isPermissionViewHidden = false
 
+    /// Temperature to display in the View
+    @Published var temperature = ""
+
     private var errorSubject = PassthroughSubject<Error?, Never>()
 
     public var error: AnyPublisher<Error?, Never> {
         errorSubject.eraseToAnyPublisher()
+    }
+
+    /// Current weather conditions to display
+    private var currentConditions: CurrentConditions? {
+        didSet {
+            populate(currentConditions: currentConditions)
+        }
+    }
+
+    /**
+     Populate the view from currentConditions
+
+     If currentConditions is nil, then display values are cleard out
+
+     - parameter currentConditions: Conditions value to populate
+     */
+    private func populate(currentConditions: CurrentConditions?) {
+        guard let currentConditions = currentConditions else {
+            temperature = ""
+            return
+        }
+
+        temperature = "\(Int(currentConditions.main.temp))℉"
     }
 
     /// Verify that all ViewModel state is fresh.
@@ -109,7 +135,34 @@ final class MainViewModel: ObservableObject {
             }
 
         }) { [weak self] currentLocation in
-            self?.weatherDataFetcher.fetchWeatherForCoordinate(currentLocation.coordinate)
+            self?.updateWeatherAt(coordinate: currentLocation.coordinate)
         }
+    }
+
+    private var fetchWeatherForCoordinateCancel: AnyCancellable?
+    private func updateWeatherAt(coordinate: CLLocationCoordinate2D) {
+        fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+            .retry(2)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completed in
+
+                guard let self = self else { return }
+
+                switch completed {
+                case let .failure(error):
+                    os_log("Error getting CurrentConditions with error: %{public}s",
+                           log: self.log,
+                           type: .error,
+                           error.localizedDescription)
+                    self.errorSubject.send(error)
+                case .finished:
+                    os_log("Success getting current conditions",
+                           log: self.log,
+                           type: .debug)
+                }
+
+            }) { [weak self] currentConditions in
+                self?.currentConditions = currentConditions
+            }
     }
 }

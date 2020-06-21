@@ -1,0 +1,46 @@
+{
+  "coord": {
+    "lon": -85.67,
+    "lat": 42.96
+  },
+  "weather": [
+    {
+      "id": 500,
+      "main": "Rain",
+      "description": "light rain",
+      "icon": "10d"
+    }
+  ],
+  "base": "stations",
+  "main": {
+    "temp": 70.36,
+    "feels_like": 69.19,
+    "temp_min": 69.01,
+    "temp_max": 71.6,
+    "pressure": 1013,
+    "humidity": 83
+  },
+  "visibility": 16093,
+  "wind": {
+    "speed": 11.41,
+    "deg": 240
+  },
+  "rain": {
+    "1h": 0.25
+  },
+  "clouds": {
+    "all": 90
+  },
+  "dt": 1592746942,
+  "sys": {
+    "type": 1,
+    "id": 4269,
+    "country": "US",
+    "sunrise": 1592733832,
+    "sunset": 1592789114
+  },
+  "timezone": -14400,
+  "id": 4994358,
+  "name": "Grand Rapids",
+  "cod": 200
+}
