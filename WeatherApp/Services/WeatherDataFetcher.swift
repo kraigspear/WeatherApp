@@ -50,4 +50,27 @@ final class WeatherDataFetcher: WeatherDataFetchable {
             .decode(type: CurrentConditions.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }
+
+    func fetchHoulryForecast(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<HourlyForecast, Error> {
+        os_log("fetchHoulryForecast: %f,%f",
+               log: log,
+               type: .debug,
+               coordinate.latitude,
+               coordinate.longitude)
+
+        func urlRequest(_ coordinate: CLLocationCoordinate2D) -> URLRequest {
+            let urlStr = "https://api.openweathermap.org/data/2.5/forecast?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&appid=\(appId)&units=imperial"
+
+            os_log("URL: %s",
+                   log: log,
+                   type: .debug,
+                   urlStr)
+
+            return URLRequest(url: URL(string: urlStr)!)
+        }
+
+        return urlSession.loadData(from: urlRequest(coordinate))
+            .decode(type: HourlyForecast.self, decoder: JSONDecoder())
+            .eraseToAnyPublisher()
+    }
 }

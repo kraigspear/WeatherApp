@@ -83,4 +83,39 @@ final class WeatherDataFetcherTest: XCTestCase {
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectFailed], timeout: 1))
     }
+
+    func testHourlyForecastSuccess() {
+        networkSessionMock.data = load(assetWithName: "HourlyForecast")
+
+        let coordinate = CLLocationCoordinate2D(latitude: 42.96,
+                                                longitude: -85.67)
+
+        let expectSuccess = expectation(description: "success")
+
+        var receivedForecast: HourlyForecast?
+
+        fetchWeatherCancel = weatherDataFetcher.fetchHoulryForecast(coordinate)
+            .sink(receiveCompletion: { completed in
+
+                switch completed {
+                case .failure:
+                    XCTFail("Failure not expected")
+                case .finished:
+                    expectSuccess.fulfill()
+                }
+
+            }) { hourlyForecast in
+                receivedForecast = hourlyForecast
+            }
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectSuccess], timeout: 1))
+
+        XCTAssertNotNil(receivedForecast)
+        XCTAssertEqual(40, receivedForecast!.list.count)
+        let firstHour = receivedForecast!.list.first!
+
+        XCTAssertEqual(1_592_762_400, firstHour.dateTimeEpoch)
+        XCTAssertEqual(78.21, firstHour.main.temp)
+        XCTAssertEqual("10d", firstHour.weather.first!.icon)
+    }
 }
