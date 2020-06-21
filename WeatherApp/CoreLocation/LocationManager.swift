@@ -14,28 +14,27 @@ import os.log
 typealias CurrentLocationPublisher = AnyPublisher<CLLocation?, Error>
 
 /**
- Protocol to match CLLocationManager as much as possible.
+ Protocol to match CLLocationManager as much as possible for testing.
 
- It is common to use have a protcol match a framework type, so that
- a wrapper class is not needed.
-
- In this case since we have some class functions
- we are creating a wrapper.
-
- Abstracts out `CLLocationManager` for testing
+ Access to permissions and the location of this device
  */
 protocol LocationManageable {
+    /// Returns a Boolean value indicating whether location services are enabled on the device.
     var locationServicesEnabled: Bool { get }
 
+    /// Returns the app’s authorization status for using location services.
     var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> { get }
 
+    /// Requests the user’s permission to use location services while the app is in use.
     func requestWhenInUseAuthorization()
 
+    /// Requests the one-time delivery of the user’s current location.
     func requestLocation() -> AnyPublisher<CLLocation, Error>
 }
 
 /**
  Implementation of `LocationManageable`
+ Access to permissions and the location of this device
  */
 final class LocationManager: NSObject, LocationManageable {
     private let log = LogContext.locationManager
@@ -45,24 +44,33 @@ final class LocationManager: NSObject, LocationManageable {
         cllocationManager.delegate = self
     }
 
+    /// Wrapped instance
     private let cllocationManager = CLLocationManager()
 
+    // MARK: Requesting Authorization for Location Services
+
+    /// The App's authorization status for using location services
     private var authorizationCurrentValueSubject = CurrentValueSubject<CLAuthorizationStatus, Never>(CLLocationManager.authorizationStatus())
 
-    public var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> {
+    /// The App's authorization status for using location services, publisher
+    var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> {
         authorizationCurrentValueSubject.eraseToAnyPublisher()
     }
 
-    public var locationServicesEnabled: Bool {
+    /// Returns a Boolean value indicating whether location services are enabled on the device.
+    var locationServicesEnabled: Bool {
         CLLocationManager.locationServicesEnabled()
     }
 
-    public func requestWhenInUseAuthorization() {
+    /// Requests the user’s permission to use location services while the app is in use.
+    func requestWhenInUseAuthorization() {
         os_log("requestWhenInUseAuthorization",
                log: log,
                type: .debug)
         cllocationManager.requestWhenInUseAuthorization()
     }
+
+    // MARK: Requesting Location
 
     private var requestLocationPublisher: PassthroughSubject<CLLocation, Error>?
     public func requestLocation() -> AnyPublisher<CLLocation, Error> {
@@ -87,19 +95,24 @@ extension LocationManager: CLLocationManagerDelegate {
     }
 
     func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        os_log("didUpdateLocations count: %d",
+        os_log(": %d",
                log: log,
                type: .debug,
                locations.count)
 
-        if let firstLocation = locations.first {
-            // We assume that if we're receiving a location then the publisher is active.
-            // If not, we could have a logic error.
-            assert(requestLocationPublisher != nil, "requestLocationPublisher is nil?")
-            requestLocationPublisher?.send(firstLocation)
+        // We're only processing the first location sent to `didUpdateLocations`
+        // Publisher is closed after the first call
+        defer {
             requestLocationPublisher?.send(completion: .finished)
             requestLocationPublisher = nil
         }
+
+        guard let firstLocation = locations.first else {
+            assertionFailure("didUpdateLocations called without at least one location?")
+            return
+        }
+
+        requestLocationPublisher?.send(firstLocation)
     }
 
     func locationManager(_: CLLocationManager, didFailWithError error: Error) {

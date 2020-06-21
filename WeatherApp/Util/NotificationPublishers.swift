@@ -15,7 +15,7 @@ protocol NotificationPublishable {
 
 final class NotificationPublishers: NotificationPublishable {
     var appWillEnterForeground: AnyPublisher<Void, Never> {
-        return NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
+        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
             .flatMap { _ -> AnyPublisher<Void, Never> in
                 Just<Void>(()).eraseToAnyPublisher()
             }.eraseToAnyPublisher()
