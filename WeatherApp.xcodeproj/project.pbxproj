@@ -32,6 +32,8 @@
 		A9E15D52249F92D700071376 /* TestData.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A9E15D51249F92D700071376 /* TestData.xcassets */; };
 		A9E15D54249F937800071376 /* TestDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E15D53249F937800071376 /* TestDataLoader.swift */; };
 		A9E15D56249F947800071376 /* XCTTestExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E15D55249F947800071376 /* XCTTestExtension.swift */; };
+		A9E15D59249FA38A00071376 /* CurrentConditionsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E15D58249FA38A00071376 /* CurrentConditionsViewController.swift */; };
+		A9E15D5B249FA95600071376 /* ViewControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E15D5A249FA95600071376 /* ViewControllerExtensions.swift */; };
 		A9E7F4E8249E68ED00013595 /* WeatherDataFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E7F4E7249E68ED00013595 /* WeatherDataFetcher.swift */; };
 		A9E7F4EA249E6A6B00013595 /* WeatherDataFetchableMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E7F4E9249E6A6B00013595 /* WeatherDataFetchableMock.swift */; };
 /* End PBXBuildFile section */
@@ -76,6 +78,8 @@
 		A9E15D51249F92D700071376 /* TestData.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = TestData.xcassets; sourceTree = "<group>"; };
 		A9E15D53249F937800071376 /* TestDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDataLoader.swift; sourceTree = "<group>"; };
 		A9E15D55249F947800071376 /* XCTTestExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XCTTestExtension.swift; sourceTree = "<group>"; };
+		A9E15D58249FA38A00071376 /* CurrentConditionsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentConditionsViewController.swift; sourceTree = "<group>"; };
+		A9E15D5A249FA95600071376 /* ViewControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerExtensions.swift; sourceTree = "<group>"; };
 		A9E7F4E7249E68ED00013595 /* WeatherDataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherDataFetcher.swift; sourceTree = "<group>"; };
 		A9E7F4E9249E6A6B00013595 /* WeatherDataFetchableMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherDataFetchableMock.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -182,10 +186,12 @@
 		A96FA836249E3AA5008E91F9 /* Main */ = {
 			isa = PBXGroup;
 			children = (
+				A9E15D57249FA34100071376 /* CurrentConditionsView */,
 				A9494643249E4B4D00C4DC46 /* LocationPermissionsView */,
 				A96FA819249E3A2B008E91F9 /* Main.storyboard */,
 				A96FA817249E3A2A008E91F9 /* MainViewController.swift */,
 				A96FA837249E3AD6008E91F9 /* MainViewModel.swift */,
+				A9E15D5A249FA95600071376 /* ViewControllerExtensions.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -227,6 +233,14 @@
 				A9E15D55249F947800071376 /* XCTTestExtension.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		A9E15D57249FA34100071376 /* CurrentConditionsView */ = {
+			isa = PBXGroup;
+			children = (
+				A9E15D58249FA38A00071376 /* CurrentConditionsViewController.swift */,
+			);
+			path = CurrentConditionsView;
 			sourceTree = "<group>";
 		};
 		A9E7F4E6249E68D800013595 /* Services */ = {
@@ -341,6 +355,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9E15D59249FA38A00071376 /* CurrentConditionsViewController.swift in Sources */,
 				A96FA818249E3A2A008E91F9 /* MainViewController.swift in Sources */,
 				A9494647249E4B9B00C4DC46 /* LocationPermissionViewModel.swift in Sources */,
 				A96FA83D249E3CCA008E91F9 /* LocationManager.swift in Sources */,
@@ -353,6 +368,7 @@
 				A949464E249E4F9200C4DC46 /* NotificationPublishers.swift in Sources */,
 				A949463F249E43FE00C4DC46 /* LogContext.swift in Sources */,
 				A96FA838249E3AD6008E91F9 /* MainViewModel.swift in Sources */,
+				A9E15D5B249FA95600071376 /* ViewControllerExtensions.swift in Sources */,
 				A9E15D49249F735400071376 /* CurrentConditions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

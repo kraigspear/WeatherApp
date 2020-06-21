@@ -36,7 +36,13 @@ final class WeatherDataFetcher: WeatherDataFetchable {
                coordinate.longitude)
 
         func urlRequest(_ coordinate: CLLocationCoordinate2D) -> URLRequest {
-            let urlStr = "https://api.openweathermap.org/data/2.5/weather?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&appid=\(appId)"
+            let urlStr = "https://api.openweathermap.org/data/2.5/weather?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&appid=\(appId)&units=imperial"
+
+            os_log("URL: %s",
+                   log: log,
+                   type: .debug,
+                   urlStr)
+
             return URLRequest(url: URL(string: urlStr)!)
         }
 

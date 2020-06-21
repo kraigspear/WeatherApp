@@ -10,21 +10,15 @@ import Combine
 import UIKit
 
 final class MainViewController: UIViewController {
-    private var viewModel: MainViewModel!
-
-    /// We don't want 'real' implementation running as part of a unit test
-    private var isUnitTest: Bool {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        return appDelegate.isUnitTest
-    }
-
     /// Embedded view asking for permissions
     @IBOutlet var permissionsView: UIView!
 
     private var cancels = Set<AnyCancellable>()
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    // MARK: - Overrides
+
+    lazy var viewModel: MainViewModel = {
+        let viewModel = MainViewModel()
 
         func syncToViewModel() {
             viewModel.$isPermissionViewHidden
@@ -37,10 +31,13 @@ final class MainViewController: UIViewController {
             }.store(in: &cancels)
         }
 
-        if !isUnitTest {
-            viewModel = MainViewModel()
-            syncToViewModel()
-        }
+        syncToViewModel()
+
+        return viewModel
+    }()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -48,6 +45,15 @@ final class MainViewController: UIViewController {
 
         if !isUnitTest {
             viewModel.reload()
+        }
+    }
+
+    override func prepare(for segue: UIStoryboardSegue, sender _: Any?) {
+        guard !isUnitTest else { return }
+
+        if segue.identifier == "currentConditions" {
+            let currentConditionsViewController = segue.destination as! CurrentConditionsViewController
+            currentConditionsViewController.setup(mainViewModel: viewModel)
         }
     }
 

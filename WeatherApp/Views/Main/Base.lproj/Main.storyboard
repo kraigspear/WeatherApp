@@ -21,11 +21,21 @@
                                     <segue destination="OYc-YQ-paa" kind="embed" id="QHp-Oa-OYG"/>
                                 </connections>
                             </containerView>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Pnk-FC-v02">
+                                <rect key="frame" x="0.0" y="44" width="414" height="818"/>
+                                <connections>
+                                    <segue destination="eyz-lY-dbh" kind="embed" identifier="currentConditions" id="2Gv-4t-vul"/>
+                                </connections>
+                            </containerView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Pnk-FC-v02" secondAttribute="trailing" id="4Fi-LQ-I1x"/>
                             <constraint firstItem="eZv-Hk-ija" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="20" id="6tu-au-1Tf"/>
+                            <constraint firstItem="Pnk-FC-v02" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Gzh-lA-MfW"/>
+                            <constraint firstItem="Pnk-FC-v02" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="Tg4-5f-DAa"/>
                             <constraint firstItem="eZv-Hk-ija" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="TgX-2E-Z34"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="Pnk-FC-v02" secondAttribute="bottom" id="WmX-aJ-W4w"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="eZv-Hk-ija" secondAttribute="trailing" constant="20" id="lRq-ns-JZ9"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="eZv-Hk-ija" secondAttribute="bottom" constant="20" id="mbc-Hy-1Bu"/>
                             <constraint firstItem="eZv-Hk-ija" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="r2s-QI-nz6"/>
@@ -76,7 +86,36 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="PAR-32-W9t" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="564" y="132"/>
+            <point key="canvasLocation" x="580" y="-108"/>
+        </scene>
+        <!--Current Conditions View Controller-->
+        <scene sceneID="RHj-dU-5xA">
+            <objects>
+                <viewController id="eyz-lY-dbh" customClass="CurrentConditionsViewController" customModule="WeatherApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="v8S-8X-T0Y">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="818"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LTO-Tz-7zP" userLabel="temperatureLabel">
+                                <rect key="frame" x="167" y="388.5" width="80.5" height="41"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle0"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <constraints>
+                            <constraint firstItem="LTO-Tz-7zP" firstAttribute="centerY" secondItem="v8S-8X-T0Y" secondAttribute="centerY" id="HbL-av-WIT"/>
+                            <constraint firstItem="LTO-Tz-7zP" firstAttribute="centerX" secondItem="v8S-8X-T0Y" secondAttribute="centerX" id="qtE-XN-k2h"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="temperatureLabel" destination="LTO-Tz-7zP" id="NVB-du-Fm1"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ZBN-et-OnP" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="609" y="481"/>
         </scene>
     </scenes>
 </document>

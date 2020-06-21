@@ -6,26 +6,81 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
+import Combine
+import CoreLocation
 import XCTest
 
+@testable import WeatherApp
+
+private enum SomeError: Error {
+    case error
+}
+
 final class WeatherDataFetcherTest: XCTestCase {
+    private var networkSessionMock: NetworkSessionMock!
+    private var weatherDataFetcher: WeatherDataFetcher!
+
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        networkSessionMock = NetworkSessionMock()
+        weatherDataFetcher = WeatherDataFetcher(urlSession: networkSessionMock)
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        fetchWeatherCancel = nil
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    private var fetchWeatherCancel: AnyCancellable?
+
+    func testCurrentConditionsSuccess() throws {
+        networkSessionMock.data = load(assetWithName: "CurrentConditions")
+
+        let coordinate = CLLocationCoordinate2D(latitude: 42.96,
+                                                longitude: -85.67)
+
+        let expectSuccess = expectation(description: "success")
+
+        var receivedCurrentConditions: CurrentConditions?
+
+        fetchWeatherCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+            .sink(receiveCompletion: { completed in
+
+                switch completed {
+                case .failure:
+                    XCTFail("Failure not expected")
+                case .finished:
+                    expectSuccess.fulfill()
+                }
+
+            }) { currentConditions in
+                receivedCurrentConditions = currentConditions
+            }
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectSuccess], timeout: 1))
+        XCTAssertNotNil(receivedCurrentConditions)
+        XCTAssertEqual(70.36, receivedCurrentConditions!.main.temp)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testCurrentConditionsError() {
+        networkSessionMock.error = SomeError.error
+        let expectFailed = expectation(description: "failed")
+
+        let coordinate = CLLocationCoordinate2D(latitude: 42.96,
+                                                longitude: -85.67)
+
+        fetchWeatherCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+            .sink(receiveCompletion: { completed in
+
+                switch completed {
+                case .failure:
+                    expectFailed.fulfill()
+                case .finished:
+                    XCTFail("Failure not expected")
+                }
+
+                   }) { _ in
+                XCTFail("Shouldn't have received value")
+            }
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectFailed], timeout: 1))
     }
 }
