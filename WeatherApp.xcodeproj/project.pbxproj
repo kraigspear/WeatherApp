@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A90AD40624A0DB00000AFD68 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40524A0DB00000AFD68 /* ImageCache.swift */; };
+		A90AD40824A0E015000AFD68 /* ConditionImageLoaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40724A0E015000AFD68 /* ConditionImageLoaderTest.swift */; };
+		A90AD40A24A0E048000AFD68 /* ImageCacheMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */; };
 		A949463F249E43FE00C4DC46 /* LogContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A949463E249E43FE00C4DC46 /* LogContext.swift */; };
 		A9494642249E490B00C4DC46 /* SettingsOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9494641249E490B00C4DC46 /* SettingsOpener.swift */; };
 		A9494645249E4B6C00C4DC46 /* LocationPermissionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9494644249E4B6C00C4DC46 /* LocationPermissionViewController.swift */; };
@@ -57,6 +59,8 @@
 
 /* Begin PBXFileReference section */
 		A90AD40524A0DB00000AFD68 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		A90AD40724A0E015000AFD68 /* ConditionImageLoaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionImageLoaderTest.swift; sourceTree = "<group>"; };
+		A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheMock.swift; sourceTree = "<group>"; };
 		A949463E249E43FE00C4DC46 /* LogContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogContext.swift; sourceTree = "<group>"; };
 		A9494641249E490B00C4DC46 /* SettingsOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsOpener.swift; sourceTree = "<group>"; };
 		A9494644249E4B6C00C4DC46 /* LocationPermissionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionViewController.swift; sourceTree = "<group>"; };
@@ -227,6 +231,7 @@
 				A949464F249E53E600C4DC46 /* NotificationPublishableMock.swift */,
 				A949464B249E4C9B00C4DC46 /* SettingsOpenMock.swift */,
 				A9E7F4E9249E6A6B00013595 /* WeatherDataFetchableMock.swift */,
+				A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -260,6 +265,7 @@
 				A9E15D4D249F8FD500071376 /* NetworkSessionMock.swift */,
 				A9E15D53249F937800071376 /* TestDataLoader.swift */,
 				A9E15D55249F947800071376 /* XCTTestExtension.swift */,
+				A90AD40724A0E015000AFD68 /* ConditionImageLoaderTest.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -414,12 +420,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9E15D4C249F8EEE00071376 /* WeatherDataFetcherTest.swift in Sources */,
+				A90AD40824A0E015000AFD68 /* ConditionImageLoaderTest.swift in Sources */,
 				A96FA840249E3E67008E91F9 /* LocationManageableMock.swift in Sources */,
 				A96FA83A249E3BB5008E91F9 /* MainViewModelTest.swift in Sources */,
 				A9E15D56249F947800071376 /* XCTTestExtension.swift in Sources */,
 				A9E15D4E249F8FD500071376 /* NetworkSessionMock.swift in Sources */,
 				A9E15D54249F937800071376 /* TestDataLoader.swift in Sources */,
 				A949464C249E4C9B00C4DC46 /* SettingsOpenMock.swift in Sources */,
+				A90AD40A24A0E048000AFD68 /* ImageCacheMock.swift in Sources */,
 				A949464A249E4C3A00C4DC46 /* LocationPermissionsViewModelTest.swift in Sources */,
 				A9494650249E53E600C4DC46 /* NotificationPublishableMock.swift in Sources */,
 				A9E7F4EA249E6A6B00013595 /* WeatherDataFetchableMock.swift in Sources */,
