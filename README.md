@@ -8,12 +8,22 @@ Demonstration of a simple iOS app that shows the weather for the current locatio
 This App follows the MVVM pattern using Combine (new to iOS 13); however, it still uses UIKit.
 The idea is that the same ViewModels could be used with SwiftUI, but this was not attempted. 
 
-- On App Startup / Foregrounded 
-  - Checks if locations permissions are on
-    - If location permissions are not on show embedded ViewController with a button to go to settings to turn them on
-  - Checks if location permissions are restricted or denied
-    - Shows same embedded ViewController allowing to change in settings
-  
+- No 3rd party frameworks
+- Handels the various edge cases with location
+- Uses NSCache to cache weather images
+- Logic is unit tested
+- Does not GCD, or (NS)Operation directly, relies on Combine 
+
+### Reactive Programming
+I haven't been much of a fan of reactive programming (RxSwift) due to the impact on the architecture.
+With the introduction of the Apple Combine Framework, I've used it more since it's now in the approved framework. 
+
+*More info on Combine:*
+https://heckj.github.io/swiftui-notes/
 
 
-  
+### Unit Testing
+
+```
+Executed 24 tests, with 0 failures (0 unexpected) in 0.128 (0.140) seconds
+```
