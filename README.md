@@ -16,7 +16,7 @@ The idea is that the same ViewModels could be used with SwiftUI, but this was no
 
 ### Reactive Programming
 I haven't been much of a fan of reactive programming (RxSwift) due to the impact on the architecture.
-With the introduction of the Apple Combine Framework, I've used it more since it's now in the approved framework. 
+With the introduction of the Apple Combine Framework, I've used it more since it's part of iOS. 
 
 *More info on Combine:*
 https://heckj.github.io/swiftui-notes/
