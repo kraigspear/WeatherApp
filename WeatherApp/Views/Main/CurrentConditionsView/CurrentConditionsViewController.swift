@@ -20,6 +20,8 @@ final class CurrentConditionsViewController: UIViewController {
     @IBOutlet private var locationLabel: UILabel!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
 
+    @IBOutlet private var forecastButton: UIButton!
+
     // MARK: - Overrides
 
     override func viewDidLoad() {
@@ -66,6 +68,10 @@ final class CurrentConditionsViewController: UIViewController {
 
         mainViewModel.$locationName.sink { [weak self] locationName in
             self?.locationLabel.text = locationName
+        }.store(in: &cancels)
+
+        mainViewModel.$isForecastButtonEnabled.sink { [weak self] isForecastButtonEnabled in
+            self?.forecastButton.isEnabled = isForecastButtonEnabled
         }.store(in: &cancels)
 
         mainViewModel.$isBusy.sink { [weak self] isBusy in

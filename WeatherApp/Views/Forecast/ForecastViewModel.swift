@@ -14,8 +14,10 @@ import os.log
 final class ForecastViewModel: ObservableObject {
     private let log = LogContext.forecastViewModel
 
+    /// Provides the forecast
     private let weatherDataFetcher: WeatherDataFetchable
 
+    /// Hourly Forecast to show in Forecastt cell
     @Published var hourlyForecast: Forecast?
     @Published var error: Error?
 

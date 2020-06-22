@@ -147,6 +147,7 @@
                     </view>
                     <connections>
                         <outlet property="activityIndicator" destination="WXu-SI-4cv" id="hOH-Wm-4sT"/>
+                        <outlet property="forecastButton" destination="svf-6i-dHb" id="cXU-MK-ZCu"/>
                         <outlet property="locationLabel" destination="zA2-O6-CJN" id="uao-Wy-fsf"/>
                         <outlet property="temperatureLabel" destination="LTO-Tz-7zP" id="NVB-du-Fm1"/>
                     </connections>

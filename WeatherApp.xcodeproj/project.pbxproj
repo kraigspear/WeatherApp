@@ -10,6 +10,7 @@
 		A90AD40624A0DB00000AFD68 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40524A0DB00000AFD68 /* ImageCache.swift */; };
 		A90AD40824A0E015000AFD68 /* ConditionImageLoaderTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40724A0E015000AFD68 /* ConditionImageLoaderTest.swift */; };
 		A90AD40A24A0E048000AFD68 /* ImageCacheMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */; };
+		A90AD40C24A0FCD4000AFD68 /* ForecastViewModelTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90AD40B24A0FCD4000AFD68 /* ForecastViewModelTest.swift */; };
 		A949463F249E43FE00C4DC46 /* LogContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A949463E249E43FE00C4DC46 /* LogContext.swift */; };
 		A9494642249E490B00C4DC46 /* SettingsOpener.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9494641249E490B00C4DC46 /* SettingsOpener.swift */; };
 		A9494645249E4B6C00C4DC46 /* LocationPermissionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9494644249E4B6C00C4DC46 /* LocationPermissionViewController.swift */; };
@@ -61,6 +62,7 @@
 		A90AD40524A0DB00000AFD68 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		A90AD40724A0E015000AFD68 /* ConditionImageLoaderTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConditionImageLoaderTest.swift; sourceTree = "<group>"; };
 		A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheMock.swift; sourceTree = "<group>"; };
+		A90AD40B24A0FCD4000AFD68 /* ForecastViewModelTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastViewModelTest.swift; sourceTree = "<group>"; };
 		A949463E249E43FE00C4DC46 /* LogContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogContext.swift; sourceTree = "<group>"; };
 		A9494641249E490B00C4DC46 /* SettingsOpener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsOpener.swift; sourceTree = "<group>"; };
 		A9494644249E4B6C00C4DC46 /* LocationPermissionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPermissionViewController.swift; sourceTree = "<group>"; };
@@ -140,13 +142,14 @@
 			path = LocationPermissionsView;
 			sourceTree = "<group>";
 		};
-		A9494648249E4C0F00C4DC46 /* Main */ = {
+		A9494648249E4C0F00C4DC46 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				A96FA839249E3BB5008E91F9 /* MainViewModelTest.swift */,
 				A9494649249E4C3A00C4DC46 /* LocationPermissionsViewModelTest.swift */,
+				A90AD40B24A0FCD4000AFD68 /* ForecastViewModelTest.swift */,
 			);
-			path = Main;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		A96FA807249E3A2A008E91F9 = {
@@ -187,7 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				A96FA82C249E3A2C008E91F9 /* Info.plist */,
-				A9494648249E4C0F00C4DC46 /* Main */,
+				A9494648249E4C0F00C4DC46 /* Views */,
 				A96FA83E249E3CEB008E91F9 /* Mocks */,
 				A9E15D4A249F8EB500071376 /* Services */,
 			);
@@ -227,11 +230,11 @@
 		A96FA83E249E3CEB008E91F9 /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
+				A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */,
 				A96FA83F249E3E67008E91F9 /* LocationManageableMock.swift */,
 				A949464F249E53E600C4DC46 /* NotificationPublishableMock.swift */,
 				A949464B249E4C9B00C4DC46 /* SettingsOpenMock.swift */,
 				A9E7F4E9249E6A6B00013595 /* WeatherDataFetchableMock.swift */,
-				A90AD40924A0E048000AFD68 /* ImageCacheMock.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -421,6 +424,7 @@
 			files = (
 				A9E15D4C249F8EEE00071376 /* WeatherDataFetcherTest.swift in Sources */,
 				A90AD40824A0E015000AFD68 /* ConditionImageLoaderTest.swift in Sources */,
+				A90AD40C24A0FCD4000AFD68 /* ForecastViewModelTest.swift in Sources */,
 				A96FA840249E3E67008E91F9 /* LocationManageableMock.swift in Sources */,
 				A96FA83A249E3BB5008E91F9 /* MainViewModelTest.swift in Sources */,
 				A9E15D56249F947800071376 /* XCTTestExtension.swift in Sources */,
