@@ -25,6 +25,6 @@ The idea is that the same ViewModels could be used with SwiftUI, but this hasn't
 Executed 24 tests, with 0 failures (0 unexpected) in 0.128 (0.140) seconds
 ```
 
-###Link(s)
+### Link(s)
 *More info on Combine:*
 https://heckj.github.io/swiftui-notes/
