@@ -16,13 +16,18 @@ typealias NetworkResult = Result<Data, Error>
 typealias LoadDataCompletion = (NetworkResult) -> Void
 
 /// Loads data from the network via a Publisher
+/// Allows replacing a URLSession with a mock for UnitTest
 protocol NetworkSession: AnyObject {
     /// Load data from a URL request, providing a Publisher
-    /// - Parameter request: Request to load data for
+    /// - Parameter request: Request to load
+    /// - Returns: Publisher with Data or Error
     func loadData(from request: URLRequest) -> AnyPublisher<Data, Error>
 }
 
 extension URLSession: NetworkSession {
+    /// Load data from a URL request, providing a Publisher
+    /// - Parameter from: Request to load
+    /// - Returns: Publisher with Data or Error
     func loadData(from request: URLRequest) -> AnyPublisher<Data, Error> {
         Future<Data, Error> { promise in
 
@@ -46,8 +51,11 @@ extension URLSession: NetworkSession {
         }.eraseToAnyPublisher()
     }
 
-    func loadData(from request: URLRequest,
-                  completionHandler: @escaping LoadDataCompletion) {
+    /// Load data using a closure
+    ///   - Parameter from: Request to load
+    ///   - completionHandler: Closure to call with the result of the network operation
+    private func loadData(from request: URLRequest,
+                          completionHandler: @escaping LoadDataCompletion) {
         let urlString = request.url!.absoluteString
 
         let logContext = LogContext.network
@@ -79,13 +87,5 @@ extension URLSession: NetworkSession {
         }
 
         task.resume()
-    }
-}
-
-final class NetworkManager {
-    private let session: NetworkSession
-
-    init(session: NetworkSession = URLSession.shared) {
-        self.session = session
     }
 }

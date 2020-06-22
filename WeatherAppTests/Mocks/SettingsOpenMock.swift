@@ -9,7 +9,7 @@
 import Foundation
 @testable import WeatherApp
 
-final class SettingsOpenMock: SettingsOpenable {
+final class SettingsOpenMock: SettingsOpening {
     private(set) var openCalled = 0
 
     func open() {

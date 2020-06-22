@@ -8,13 +8,22 @@
 
 import Foundation
 
+/// ViewModel for LocationPermissions
+/// LocationPermission gives an explamation on why location services are needed
+/// and allows opening up settings to grant these permssions.
 final class LocationPermissionViewModel {
-    private let settingsOpener: SettingsOpenable
+    /// Open settings
+    private let settingsOpener: SettingsOpening
 
-    init(settingsOpener: SettingsOpenable = SettingsOpener()) {
+    /**
+     Initialize with dependencies
+     - parameter settingsOpener: Allows opening up settings
+     */
+    init(settingsOpener: SettingsOpening = SettingsOpener()) {
         self.settingsOpener = settingsOpener
     }
 
+    /// Open Settings
     func openSettings() {
         settingsOpener.open()
     }

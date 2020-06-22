@@ -7,6 +7,16 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Forecast-->
+        <scene sceneID="yfQ-e9-32C">
+            <objects>
+                <viewControllerPlaceholder storyboardIdentifier="Forecast" storyboardName="Forecast" id="gox-21-Uf9" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="z6p-hE-hZu"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Y9L-NO-kn3" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2475" y="445"/>
+        </scene>
         <!--Current Temperature-->
         <scene sceneID="tne-QT-ifu">
             <objects>
@@ -22,7 +32,7 @@
                                 </connections>
                             </containerView>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Pnk-FC-v02">
-                                <rect key="frame" x="0.0" y="-88" width="414" height="774"/>
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="774"/>
                                 <connections>
                                     <segue destination="eyz-lY-dbh" kind="embed" identifier="currentConditions" id="2Gv-4t-vul"/>
                                 </connections>
@@ -99,24 +109,32 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="w8E-Rt-daH">
-                                <rect key="frame" x="144.5" y="282" width="125" height="210"/>
+                                <rect key="frame" x="97.5" y="255.5" width="219" height="263"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Location" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zA2-O6-CJN" userLabel="locationLabel">
-                                        <rect key="frame" x="0.0" y="0.0" width="125" height="36"/>
+                                        <rect key="frame" x="47" y="0.0" width="125" height="36"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="30"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="75" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="LTO-Tz-7zP" userLabel="temperatureLabel">
-                                        <rect key="frame" x="6.5" y="36" width="112" height="137"/>
+                                        <rect key="frame" x="53.5" y="36" width="112" height="137"/>
                                         <fontDescription key="fontDescription" name="AvenirNext-UltraLight" family="Avenir Next" pointSize="100"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="WXu-SI-4cv" userLabel="activityIndicator">
-                                        <rect key="frame" x="44" y="173" width="37" height="37"/>
+                                        <rect key="frame" x="91" y="173" width="37" height="37"/>
                                         <color key="color" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </activityIndicatorView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="svf-6i-dHb" userLabel="forecastButton">
+                                        <rect key="frame" x="0.0" y="210" width="219" height="53"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleTitle0"/>
+                                        <state key="normal" title="5 Day Forecast"/>
+                                        <connections>
+                                            <segue destination="gox-21-Uf9" kind="show" identifier="forecast" id="ams-hk-3Pu"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                             </stackView>
                         </subviews>
@@ -125,9 +143,11 @@
                             <constraint firstItem="w8E-Rt-daH" firstAttribute="centerY" secondItem="v8S-8X-T0Y" secondAttribute="centerY" id="CfU-CX-74o"/>
                             <constraint firstItem="w8E-Rt-daH" firstAttribute="centerX" secondItem="v8S-8X-T0Y" secondAttribute="centerX" id="ZOm-4z-8gJ"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="Ayx-kj-3hO"/>
                     </view>
                     <connections>
                         <outlet property="activityIndicator" destination="WXu-SI-4cv" id="hOH-Wm-4sT"/>
+                        <outlet property="forecastButton" destination="svf-6i-dHb" id="cXU-MK-ZCu"/>
                         <outlet property="locationLabel" destination="zA2-O6-CJN" id="uao-Wy-fsf"/>
                         <outlet property="temperatureLabel" destination="LTO-Tz-7zP" id="NVB-du-Fm1"/>
                     </connections>

@@ -11,15 +11,21 @@ import CoreLocation
 import os.log
 import UIKit
 
+/// Provides View Logic for the MainViewModel and child ViewControllers
 final class MainViewModel: ObservableObject {
     private let log = LogContext.mainViewModel
 
-    private let notificationPublisher: NotificationPublishable
-
+    /// Cancels for any Publishers that are to active for the lifecycle of the ViewModel
     private var cancels = Set<AnyCancellable>()
 
     // MARK: - Init
 
+    /**
+     Initialize a new `MainViewModel` with its dependencies
+     - parameter locationManager: Access to the device locatino
+     - parameter notificationPublisher: Notfication of the App coming to the Foreground
+     - parameter weatherDataFetcher: Fetches weather data
+     */
     init(locationManager: LocationManageable = LocationManager(),
          notificationPublisher: NotificationPublishable = NotificationPublishers(),
          weatherDataFetcher: WeatherDataFetchable = WeatherDataFetcher()) {
@@ -35,25 +41,42 @@ final class MainViewModel: ObservableObject {
             .store(in: &cancels)
     }
 
+    // MARK: - Notifications
+
+    /// Notfication of the App coming to the Foreground
+    private let notificationPublisher: NotificationPublishable
+
+    // MARK: - View Properties
+
     /**
      Since this App requries knowing the current location
      A embedded view is shown asking for permissions if they
      have not been granted
      */
     @Published var isPermissionViewHidden = false
-
     /// Temperature to display in the View
     @Published var temperature = ""
+    /// The name of the location for the conditions being displayed
     @Published var locationName = ""
-
     /// Should the visual state showing "busy" be shown
     @Published var isBusy = false
+    /// Bool that indicates that if the forecast button should be enabled
+    @Published var isForecastButtonEnabled = false
 
+    // MARK: - Error Handeling
+
+    /// PassthroughSubject for errors that should be shown on the view
     private var errorSubject = PassthroughSubject<Error?, Never>()
 
+    /// Errors that should be shown on the view
     public var error: AnyPublisher<Error?, Never> {
         errorSubject.eraseToAnyPublisher()
     }
+
+    // MARK: - Weather
+
+    /// Fetches weather data
+    private let weatherDataFetcher: WeatherDataFetchable
 
     /// Current weather conditions to display
     private var currentConditions: CurrentConditions? {
@@ -70,66 +93,30 @@ final class MainViewModel: ObservableObject {
      - parameter currentConditions: Conditions value to populate
      */
     private func populate(currentConditions: CurrentConditions) {
-        temperature = "\(Int(currentConditions.main.temp))℉"
-        locationName = currentConditions.name
+        temperature = "\(Int(currentConditions.main.temperature))℉"
+        locationName = currentConditions.locationName
     }
-
-    /// Verify that all ViewModel state is fresh.
-    func reload() {
-        os_log("reload",
-               log: log,
-               type: .debug)
-
-        checkLocationPermissions()
-    }
-
-    // MARK: - Weather
-
-    /// Fetches weather data
-    private let weatherDataFetcher: WeatherDataFetchable
 
     // MARK: - Location
 
+    /// Coordinate of the location that has been loaded
+    private(set) var loadedCoordinate: CLLocationCoordinate2D? {
+        didSet {
+            isForecastButtonEnabled = loadedCoordinate != nil
+        }
+    }
+
+    /**
+     Access to the device location, permissions.
+     Weather data is shown for the current location.
+     */
     private let locationManager: LocationManageable
     private var authorizationStatus = CLAuthorizationStatus.notDetermined {
         didSet {
             os_log("authorizationStatus set, checkLocationPermissions",
                    log: log,
                    type: .debug)
-            checkLocationPermissions()
-        }
-    }
-
-    private func checkLocationPermissions() {
-        os_log("checkLocationPermissions",
-               log: log,
-               type: .debug)
-
-        if !locationManager.locationServicesEnabled {
-            os_log("Location services turned off on device",
-                   log: log,
-                   type: .debug)
-
-            isPermissionViewHidden = false
-            return // With location permissions not being on there is no need to check App permissions
-        }
-
-        isPermissionViewHidden = true
-
-        switch authorizationStatus {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse, .authorizedAlways:
-
-            os_log("Permissions authorizedWhenInUse or authorizedAlways, requesting location",
-                   log: log,
-                   type: .debug)
-
-            requestLocation()
-        case .denied, .restricted:
-            isPermissionViewHidden = false
-        @unknown default:
-            fatalError("Handle new authorizationStatus")
+            reload()
         }
     }
 
@@ -195,6 +182,41 @@ final class MainViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Loading Data
+
+    func reload() {
+        os_log("checkLocationPermissions",
+               log: log,
+               type: .debug)
+
+        if !locationManager.locationServicesEnabled {
+            os_log("Location services turned off on device",
+                   log: log,
+                   type: .debug)
+
+            isPermissionViewHidden = false
+            return // With location permissions not being on there is no need to check App permissions
+        }
+
+        isPermissionViewHidden = true
+
+        switch authorizationStatus {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse, .authorizedAlways:
+
+            os_log("Permissions authorizedWhenInUse or authorizedAlways, requesting location",
+                   log: log,
+                   type: .debug)
+
+            requestLocation()
+        case .denied, .restricted:
+            isPermissionViewHidden = false
+        @unknown default:
+            fatalError("Handle new authorizationStatus")
+        }
+    }
+
     private var fetchWeatherForCoordinateCancel: AnyCancellable?
     private func updateWeatherAt(coordinate: CLLocationCoordinate2D) {
         os_log("Fetching latest current conditions",
@@ -202,8 +224,9 @@ final class MainViewModel: ObservableObject {
                type: .debug)
 
         isBusy = true
+        loadedCoordinate = nil
 
-        fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+        fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completed in
 
@@ -222,6 +245,7 @@ final class MainViewModel: ObservableObject {
                     os_log("Success getting current conditions",
                            log: self.log,
                            type: .debug)
+                    self.loadedCoordinate = coordinate
                 }
 
             }) { [weak self] currentConditions in

@@ -16,8 +16,11 @@ class NetworkSessionMock: NetworkSession {
     var data: Data?
     var error: Error?
 
+    private(set) var loadDataCount = 0
+
     func loadData(from _: URLRequest) -> AnyPublisher<Data, Error> {
         if let data = data {
+            loadDataCount += 1
             return Just<Data>(data)
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()

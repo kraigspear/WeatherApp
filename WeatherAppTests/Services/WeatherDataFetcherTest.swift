@@ -22,7 +22,7 @@ final class WeatherDataFetcherTest: XCTestCase {
 
     override func setUpWithError() throws {
         networkSessionMock = NetworkSessionMock()
-        weatherDataFetcher = WeatherDataFetcher(urlSession: networkSessionMock)
+        weatherDataFetcher = WeatherDataFetcher(networkSession: networkSessionMock)
     }
 
     override func tearDownWithError() throws {
@@ -41,7 +41,7 @@ final class WeatherDataFetcherTest: XCTestCase {
 
         var receivedCurrentConditions: CurrentConditions?
 
-        fetchWeatherCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+        fetchWeatherCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
             .sink(receiveCompletion: { completed in
 
                 switch completed {
@@ -57,7 +57,7 @@ final class WeatherDataFetcherTest: XCTestCase {
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectSuccess], timeout: 1))
         XCTAssertNotNil(receivedCurrentConditions)
-        XCTAssertEqual(70.36, receivedCurrentConditions!.main.temp)
+        XCTAssertEqual(70.36, receivedCurrentConditions!.main.temperature)
     }
 
     func testCurrentConditionsError() {
@@ -67,7 +67,7 @@ final class WeatherDataFetcherTest: XCTestCase {
         let coordinate = CLLocationCoordinate2D(latitude: 42.96,
                                                 longitude: -85.67)
 
-        fetchWeatherCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+        fetchWeatherCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
             .sink(receiveCompletion: { completed in
 
                 switch completed {
@@ -82,5 +82,40 @@ final class WeatherDataFetcherTest: XCTestCase {
             }
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectFailed], timeout: 1))
+    }
+
+    func testHourlyForecastSuccess() {
+        networkSessionMock.data = load(assetWithName: "HourlyForecast")
+
+        let coordinate = CLLocationCoordinate2D(latitude: 42.96,
+                                                longitude: -85.67)
+
+        let expectSuccess = expectation(description: "success")
+
+        var receivedForecast: Forecast?
+
+        fetchWeatherCancel = weatherDataFetcher.fetchForecastForCoordinate(coordinate)
+            .sink(receiveCompletion: { completed in
+
+                switch completed {
+                case .failure:
+                    XCTFail("Failure not expected")
+                case .finished:
+                    expectSuccess.fulfill()
+                }
+
+            }) { hourlyForecast in
+                receivedForecast = hourlyForecast
+            }
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectSuccess], timeout: 1))
+
+        XCTAssertNotNil(receivedForecast)
+        XCTAssertEqual(40, receivedForecast!.forecastHours.count)
+        let firstHour = receivedForecast!.forecastHours.first!
+
+        XCTAssertEqual(1_592_762_400, firstHour.dateTimeEpoch)
+        XCTAssertEqual(78.21, firstHour.main.temperature)
+        XCTAssertEqual("10d", firstHour.weather.first!.icon)
     }
 }
