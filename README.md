@@ -14,7 +14,7 @@ The idea is that the same ViewModels could be used with SwiftUI, but this was no
 - Logic is unit tested including services via mocking out URLSession during a test run
 - Does not GCD, or (NS)Operation directly, relies on Combine 
 - Follows current desgin trends including darkmode
-- Logging vis os.log
+- Logging via os.log
 - Navigate to settings if permissions have not been granted
 
 ### Reactive Programming
