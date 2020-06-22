@@ -186,10 +186,10 @@
 		A96FA829249E3A2C008E91F9 /* WeatherAppTests */ = {
 			isa = PBXGroup;
 			children = (
-				A9E15D4A249F8EB500071376 /* Services */,
+				A96FA82C249E3A2C008E91F9 /* Info.plist */,
 				A9494648249E4C0F00C4DC46 /* Main */,
 				A96FA83E249E3CEB008E91F9 /* Mocks */,
-				A96FA82C249E3A2C008E91F9 /* Info.plist */,
+				A9E15D4A249F8EB500071376 /* Services */,
 			);
 			path = WeatherAppTests;
 			sourceTree = "<group>";

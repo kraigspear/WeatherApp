@@ -10,16 +10,17 @@ import Combine
 import UIKit
 
 /**
-
+  Shows the current conditions.
+  ViewModel is shared with the MainViewController (MainViewModel)
  */
 final class CurrentConditionsViewController: UIViewController {
-    @IBOutlet var temperatureLabel: UILabel!
+    // MARK: - Outlets
 
-    @IBOutlet var locationLabel: UILabel!
-    @IBOutlet var activityIndicator: UIActivityIndicatorView!
-    private var mainViewModel: MainViewModel!
+    @IBOutlet private var temperatureLabel: UILabel!
+    @IBOutlet private var locationLabel: UILabel!
+    @IBOutlet private var activityIndicator: UIActivityIndicatorView!
 
-    private var cancels = Set<AnyCancellable>()
+    // MARK: - Overrides
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,6 +41,22 @@ final class CurrentConditionsViewController: UIViewController {
         }
     }
 
+    // MARK: - ViewModel
+
+    private var mainViewModel: MainViewModel!
+    /// Any publishers that should live as long as this ViewController
+    private var cancels = Set<AnyCancellable>()
+
+    /**
+     Setup the view from a calling ViewController
+     A method is used here to keep the ViewModel private
+     - parameter mainViewModel: ViewModel for this ViewController,
+     */
+    func setup(mainViewModel: MainViewModel) {
+        self.mainViewModel = mainViewModel
+    }
+
+    /// Wireup ViewModel properties for what is shown in this View
     private func sinkToMainViewModel() {
         guard !isUnitTest else { return }
 
@@ -65,9 +82,5 @@ final class CurrentConditionsViewController: UIViewController {
             }
 
         }.store(in: &cancels)
-    }
-
-    func setup(mainViewModel: MainViewModel) {
-        self.mainViewModel = mainViewModel
     }
 }

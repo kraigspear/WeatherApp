@@ -36,6 +36,7 @@ final class ImageCache: ImageCachable {
         cache.setObject(image, forKey: NSString(string: forKey))
     }
 
+    /// Get / Set image by key
     subscript(key: String) -> UIImage? {
         get { image(forKey: key) }
         set {
