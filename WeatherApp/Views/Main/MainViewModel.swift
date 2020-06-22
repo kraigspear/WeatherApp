@@ -211,6 +211,9 @@ final class MainViewModel: ObservableObject {
 
             requestLocation()
         case .denied, .restricted:
+            os_log("Location permissions denied or restricted, showing permissions view",
+                   log: log,
+                   type: .debug)
             isPermissionViewHidden = false
         @unknown default:
             fatalError("Handle new authorizationStatus")

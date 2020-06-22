@@ -11,7 +11,9 @@ import UIKit
 
 final class MainViewController: UIViewController {
     /// Embedded view asking for permissions
-    @IBOutlet var permissionsView: UIView!
+    @IBOutlet private var permissionsView: UIView!
+
+    @IBOutlet private var conditionsView: UIView!
 
     private var cancels = Set<AnyCancellable>()
 
@@ -23,6 +25,9 @@ final class MainViewController: UIViewController {
         func syncToViewModel() {
             viewModel.$isPermissionViewHidden
                 .assign(to: \.isHidden, on: permissionsView).store(in: &cancels)
+
+            viewModel.$isPermissionViewHidden.map { !$0 }
+                .assign(to: \.isHidden, on: conditionsView).store(in: &cancels)
 
             viewModel.error.sink { [weak self] error in
                 if let error = error {
