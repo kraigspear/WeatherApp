@@ -12,19 +12,40 @@ import Foundation
 
 @testable import WeatherApp
 
-enum FetchWeatherForCoordinateResult {
-    case success(CurrentConditions)
-    case failure(Error)
-}
+typealias FetchWeatherForCoordinateResult = Result<CurrentConditions, Error>
+typealias FetchHourlyForecastResult = Result<Forecast, Error>
 
 final class WeatherDataFetchableMock: WeatherDataFetchable {
+    // MARK: - HourlyForecast
+
+    private(set) var fetchHourlyForecastResult: FetchHourlyForecastResult!
+
+    func setupForFetchHourlyForecast(result: FetchHourlyForecastResult) {
+        fetchHourlyForecastResult = result
+    }
+
+    func fetchForecastForCoordinate(_: CLLocationCoordinate2D) -> AnyPublisher<Forecast, Error> {
+        switch fetchHourlyForecastResult {
+        case let .success(hourlyForecast):
+            return Just<Forecast>(hourlyForecast)
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        case let .failure(error):
+            return Fail<Forecast, Error>(error: error).eraseToAnyPublisher()
+        case .none:
+            fatalError("not set")
+        }
+    }
+
+    // MARK: - Current Condtions
+
     private(set) var fetchWeatherForCoordinateResult: FetchWeatherForCoordinateResult!
 
-    func setupForfetchWeatherForCoordinate(result: FetchWeatherForCoordinateResult) {
+    func setupForFetchWeatherForCoordinate(result: FetchWeatherForCoordinateResult) {
         fetchWeatherForCoordinateResult = result
     }
 
-    func fetchWeatherForCoordinate(_: CLLocationCoordinate2D) -> AnyPublisher<CurrentConditions, Error> {
+    func fetchCurrentConditionsForCoordinate(_: CLLocationCoordinate2D) -> AnyPublisher<CurrentConditions, Error> {
         switch fetchWeatherForCoordinateResult {
         case let .failure(error):
             return Fail<CurrentConditions, Error>(error: error).eraseToAnyPublisher()

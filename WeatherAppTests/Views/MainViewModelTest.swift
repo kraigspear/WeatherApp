@@ -36,6 +36,7 @@ final class MainViewModelTest: XCTestCase {
     override func tearDown() {
         errorCancel = nil
         temperatureSetCancel = nil
+        isEnabledCancel = nil
     }
 
     func testLocationServiceTurnedOffIsShownWhenLocationServicesAreNotOn() {
@@ -144,7 +145,7 @@ final class MainViewModelTest: XCTestCase {
 
         let currentConditions: CurrentConditions = loadModel(from: "CurrentConditions")
         let fetchWeatherResult = FetchWeatherForCoordinateResult.success(currentConditions)
-        weatherDataFetchMock.setupForfetchWeatherForCoordinate(result: fetchWeatherResult)
+        weatherDataFetchMock.setupForFetchWeatherForCoordinate(result: fetchWeatherResult)
 
         let lat = 42.9634
         let lng = -85.6681
@@ -169,7 +170,7 @@ final class MainViewModelTest: XCTestCase {
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
         let fetchWeatherResult = FetchWeatherForCoordinateResult.failure(SomeError.error)
-        weatherDataFetchMock.setupForfetchWeatherForCoordinate(result: fetchWeatherResult)
+        weatherDataFetchMock.setupForFetchWeatherForCoordinate(result: fetchWeatherResult)
 
         let lat = 42.9634
         let lng = -85.6681
@@ -207,5 +208,32 @@ final class MainViewModelTest: XCTestCase {
         mainViewModel.reload()
         locationManageableMock.requestLocationFailed(error: RequestError.whoops)
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectError], timeout: 1))
+    }
+
+    private var isEnabledCancel: AnyCancellable?
+    func testForecastButtonIsDisabledWhenDataIsLoading() {
+        locationManageableMock.setupForlocationServicesEnabled(true)
+        locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
+
+        let currentConditions: CurrentConditions = loadModel(from: "CurrentConditions")
+        let fetchWeatherResult = FetchWeatherForCoordinateResult.success(currentConditions)
+        weatherDataFetchMock.setupForFetchWeatherForCoordinate(result: fetchWeatherResult)
+
+        let lat = 42.9634
+        let lng = -85.6681
+
+        let location = CLLocation(latitude: lat, longitude: lng)
+
+        let expectedEnabled = expectation(description: "enabled")
+
+        isEnabledCancel = mainViewModel.$isForecastButtonEnabled.sink { isEnabled in
+
+            if isEnabled { expectedEnabled.fulfill() }
+        }
+
+        mainViewModel.reload()
+        locationManageableMock.requestLocationSuccess(location: location)
+
+        XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectedEnabled], timeout: 1))
     }
 }

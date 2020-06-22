@@ -8,16 +8,25 @@
 
 import Foundation
 
+/// Current Conditions
+/// Model object for https://openweathermap.org/current
 struct CurrentConditions: Decodable {
     enum CodingKeys: String, CodingKey {
-        case name
+        case locationName = "name"
         case main
     }
 
-    let name: String
+    /// The name of the location for this `CurrentConditions`
+    let locationName: String
+    /// The main part of the current conditions
     let main: CurrentConditionsMain
 }
 
 struct CurrentConditionsMain: Decodable {
-    let temp: Double
+    enum CodingKeys: String, CodingKey {
+        case temperature = "temp"
+    }
+
+    /// The temperature in Fahrenheit for the current conditions
+    let temperature: Double
 }
