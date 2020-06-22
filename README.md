@@ -11,8 +11,9 @@ The idea is that the same ViewModels could be used with SwiftUI, but this was no
 - No 3rd party frameworks
 - Handels the various edge cases with location
 - Uses NSCache to cache weather images
-- Logic is unit tested
+- Logic is unit tested including services via mocking out URLSession during a test run
 - Does not GCD, or (NS)Operation directly, relies on Combine 
+- Follows current desgin trends including darkmode
 
 ### Reactive Programming
 I haven't been much of a fan of reactive programming (RxSwift) due to the impact on the architecture.
