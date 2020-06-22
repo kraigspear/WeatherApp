@@ -12,15 +12,36 @@ import Foundation
 
 @testable import WeatherApp
 
-enum FetchWeatherForCoordinateResult {
-    case success(CurrentConditions)
-    case failure(Error)
-}
+typealias FetchWeatherForCoordinateResult = Result<CurrentConditions, Error>
+typealias FetchHourlyForecastResult = Result<HourlyForecast, Error>
 
 final class WeatherDataFetchableMock: WeatherDataFetchable {
+    // MARK: - HourlyForecast
+
+    private(set) var fetchHourlyForecastResult: FetchHourlyForecastResult!
+
+    func setupForFetchHourlyForecast(result: FetchHourlyForecastResult) {
+        fetchHourlyForecastResult = result
+    }
+
+    func fetchHourlyForecast(_: CLLocationCoordinate2D) -> AnyPublisher<HourlyForecast, Error> {
+        switch fetchHourlyForecastResult {
+        case let .success(hourlyForecast):
+            return Just<HourlyForecast>(hourlyForecast)
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        case let .failure(error):
+            return Fail<HourlyForecast, Error>(error: error).eraseToAnyPublisher()
+        case .none:
+            fatalError("not set")
+        }
+    }
+
+    // MARK: - Current Condtions
+
     private(set) var fetchWeatherForCoordinateResult: FetchWeatherForCoordinateResult!
 
-    func setupForfetchWeatherForCoordinate(result: FetchWeatherForCoordinateResult) {
+    func setupForFetchWeatherForCoordinate(result: FetchWeatherForCoordinateResult) {
         fetchWeatherForCoordinateResult = result
     }
 

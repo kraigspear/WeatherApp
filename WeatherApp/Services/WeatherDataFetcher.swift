@@ -12,7 +12,12 @@ import Foundation
 import os.log
 
 protocol WeatherDataFetchable {
+    /**
+     Fetch the current conditions at a given coordinate
+     - parameter coordinate: Coordinate of the location to retrieve the current conditions
+     **/
     func fetchWeatherForCoordinate(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<CurrentConditions, Error>
+    func fetchHourlyForecast(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<HourlyForecast, Error>
 }
 
 final class WeatherDataFetcher: WeatherDataFetchable {
@@ -51,7 +56,7 @@ final class WeatherDataFetcher: WeatherDataFetchable {
             .eraseToAnyPublisher()
     }
 
-    func fetchHoulryForecast(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<HourlyForecast, Error> {
+    func fetchHourlyForecast(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<HourlyForecast, Error> {
         os_log("fetchHoulryForecast: %f,%f",
                log: log,
                type: .debug,

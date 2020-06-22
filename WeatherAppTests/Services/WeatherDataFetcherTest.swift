@@ -94,7 +94,7 @@ final class WeatherDataFetcherTest: XCTestCase {
 
         var receivedForecast: HourlyForecast?
 
-        fetchWeatherCancel = weatherDataFetcher.fetchHoulryForecast(coordinate)
+        fetchWeatherCancel = weatherDataFetcher.fetchHourlyForecast(coordinate)
             .sink(receiveCompletion: { completed in
 
                 switch completed {

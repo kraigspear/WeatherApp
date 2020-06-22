@@ -144,7 +144,7 @@ final class MainViewModelTest: XCTestCase {
 
         let currentConditions: CurrentConditions = loadModel(from: "CurrentConditions")
         let fetchWeatherResult = FetchWeatherForCoordinateResult.success(currentConditions)
-        weatherDataFetchMock.setupForfetchWeatherForCoordinate(result: fetchWeatherResult)
+        weatherDataFetchMock.setupForFetchWeatherForCoordinate(result: fetchWeatherResult)
 
         let lat = 42.9634
         let lng = -85.6681
@@ -169,7 +169,7 @@ final class MainViewModelTest: XCTestCase {
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
         let fetchWeatherResult = FetchWeatherForCoordinateResult.failure(SomeError.error)
-        weatherDataFetchMock.setupForfetchWeatherForCoordinate(result: fetchWeatherResult)
+        weatherDataFetchMock.setupForFetchWeatherForCoordinate(result: fetchWeatherResult)
 
         let lat = 42.9634
         let lng = -85.6681
