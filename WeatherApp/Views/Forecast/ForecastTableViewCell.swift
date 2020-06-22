@@ -12,7 +12,7 @@ import UIKit
 struct ForecastDisplay {
     let date: String
     let temperature: String
-    let hour: Hour
+    let hour: ForecastAtHour
 }
 
 final class ForecastTableViewCell: UITableViewCell {
@@ -30,7 +30,7 @@ final class ForecastTableViewCell: UITableViewCell {
         conditionImageView.image = UIImage(systemName: "timelapse")!
 
         imageCancel = ConditionImageLoader.sharedInstance
-            .loadImage(hour: forecast.hour)
+            .loadImageForForecast(at: forecast.hour)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] image in
                 self?.conditionImageView.image = image

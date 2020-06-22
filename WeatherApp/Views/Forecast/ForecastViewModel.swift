@@ -16,7 +16,7 @@ final class ForecastViewModel: ObservableObject {
 
     private let weatherDataFetcher: WeatherDataFetchable
 
-    @Published var hourlyForecast: HourlyForecast?
+    @Published var hourlyForecast: Forecast?
     @Published var error: Error?
 
     init(weatherDataFetcher: WeatherDataFetchable = WeatherDataFetcher()) {
@@ -31,7 +31,7 @@ final class ForecastViewModel: ObservableObject {
                coordinate.latitude,
                coordinate.longitude)
 
-        fetchHourlyCancel = weatherDataFetcher.fetchHourlyForecast(coordinate)
+        fetchHourlyCancel = weatherDataFetcher.fetchForecastForCoordinate(coordinate)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completed in
 
@@ -57,9 +57,9 @@ final class ForecastViewModel: ObservableObject {
         return dateFormatter
     }()
 
-    func forecastDisplay(from hour: Hour) -> ForecastDisplay {
+    func forecastDisplay(from hour: ForecastAtHour) -> ForecastDisplay {
         let date = Date(timeIntervalSince1970: Double(hour.dateTimeEpoch))
-        let temperature = "\(Int(hour.main.temp))℉"
+        let temperature = "\(Int(hour.main.temperature))℉"
         return ForecastDisplay(date: dateFormatter.string(from: date),
                                temperature: temperature,
                                hour: hour)

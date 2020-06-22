@@ -15,7 +15,7 @@ final class ForecastViewController: UITableViewController {
 
     var coordinate: CLLocationCoordinate2D?
 
-    private var hourlyForecast: HourlyForecast? {
+    private var hourlyForecast: Forecast? {
         didSet {
             tableView.reloadData()
         }
@@ -35,12 +35,12 @@ final class ForecastViewController: UITableViewController {
     }
 
     override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        hourlyForecast?.list.count ?? 0
+        hourlyForecast?.forecastHours.count ?? 0
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ForecastTableViewCell.cellId, for: indexPath) as! ForecastTableViewCell
-        let forecast = hourlyForecast!.list[indexPath.row]
+        let forecast = hourlyForecast!.forecastHours[indexPath.row]
 
         let forecastDisplay = viewModel.forecastDisplay(from: forecast)
 

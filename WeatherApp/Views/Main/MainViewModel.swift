@@ -80,8 +80,8 @@ final class MainViewModel: ObservableObject {
      - parameter currentConditions: Conditions value to populate
      */
     private func populate(currentConditions: CurrentConditions) {
-        temperature = "\(Int(currentConditions.main.temp))℉"
-        locationName = currentConditions.name
+        temperature = "\(Int(currentConditions.main.temperature))℉"
+        locationName = currentConditions.locationName
     }
 
     /// Verify that all ViewModel state is fresh.
@@ -214,7 +214,7 @@ final class MainViewModel: ObservableObject {
         isBusy = true
         loadedCoordinate = nil
 
-        fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchWeatherForCoordinate(coordinate)
+        fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completed in
 

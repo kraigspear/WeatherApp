@@ -9,9 +9,9 @@
 import Foundation
 
 final class LocationPermissionViewModel {
-    private let settingsOpener: SettingsOpenable
+    private let settingsOpener: SettingsOpening
 
-    init(settingsOpener: SettingsOpenable = SettingsOpener()) {
+    init(settingsOpener: SettingsOpening = SettingsOpener()) {
         self.settingsOpener = settingsOpener
     }
 
