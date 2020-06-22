@@ -25,13 +25,20 @@ final class ConditionImageLoader {
     /// Memory cache of condition images
     /// When an image is loaded successfully it is stored in this cache
     /// It this then reused on subsequence request
-    private let cache = NSCache<NSString, UIImage>()
+    private let imageCache: ImageCachable
+
+    /// Session used to access the network
+    private let networkSession: NetworkSession
 
     /// `ConditionImageLoader` Singleton so the same cache is used.
     static let sharedInstance = ConditionImageLoader()
 
     /// To enforce the Singleton
-    private init() {}
+    init(imageCache: ImageCachable = ImageCache(),
+         networkSession: NetworkSession = URLSession.shared) {
+        self.imageCache = imageCache
+        self.networkSession = networkSession
+    }
 
     /// Loads an image for the ForecastAtHour
     ///
@@ -43,9 +50,8 @@ final class ConditionImageLoader {
         }
 
         let urlStr = "https://openweathermap.org/img/wn/\(weather.icon)@2x.png"
-        let nsUrlStr = NSString(string: urlStr)
 
-        if let cachedImage = cache.object(forKey: nsUrlStr) {
+        if let cachedImage = imageCache[urlStr] {
             os_log("Loading from cache: %s",
                    log: log,
                    type: .debug,
@@ -62,14 +68,15 @@ final class ConditionImageLoader {
                urlStr)
 
         // Avoid using self in closure
-        let cache = self.cache
+        let cache = imageCache
 
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .map { $0.data }
+        let request = URLRequest(url: url)
+
+        return networkSession.loadData(from: request)
             .map { data -> UIImage? in
 
                 if let image = UIImage(data: data) {
-                    cache.setObject(image, forKey: nsUrlStr)
+                    cache[urlStr] = image
                     return image
                 }
 
