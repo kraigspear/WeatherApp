@@ -70,11 +70,11 @@ final class MainViewModelTest: XCTestCase {
      if the LocationServices view should be shown
      */
     func testLocationServicesEnabledIsCheckedWhenAppEnteresForeground() {
-        XCTAssertEqual(1, locationManageableMock.locationServicesEnabledCalled)
+        XCTAssertEqual(0, locationManageableMock.locationServicesEnabledCalled)
         mainViewModel.reload()
-        XCTAssertEqual(2, locationManageableMock.locationServicesEnabledCalled)
+        XCTAssertEqual(1, locationManageableMock.locationServicesEnabledCalled)
         notificationMock.sendAppWillEnterForeground()
-        XCTAssertEqual(3, locationManageableMock.locationServicesEnabledCalled)
+        XCTAssertEqual(2, locationManageableMock.locationServicesEnabledCalled)
     }
 
     /**

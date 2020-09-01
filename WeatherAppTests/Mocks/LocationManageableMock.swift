@@ -13,6 +13,14 @@ import Foundation
 @testable import WeatherApp
 
 final class LocationManageableMock: LocationManageable {
+    weak var delegate: LocationManagerDelegate?
+
+    var authorizationStatus: CLAuthorizationStatus = .notDetermined {
+        didSet {
+            delegate?.authStatusUpdated(to: authorizationStatus)
+        }
+    }
+
     private(set) var requestLocationCalled = 0
 
     private var requestLocationPassthroughSubject = PassthroughSubject<CLLocation, Error>()
@@ -38,13 +46,6 @@ final class LocationManageableMock: LocationManageable {
         return locationServicesEnabledValue
     }
 
-    private var authorizationStatusValue =
-        CurrentValueSubject<CLAuthorizationStatus, Never>(CLAuthorizationStatus.notDetermined)
-
-    var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> {
-        authorizationStatusValue.eraseToAnyPublisher()
-    }
-
     private(set) var requestWhenInUseAuthorizationCalled = 0
     func requestWhenInUseAuthorization() {
         requestWhenInUseAuthorizationCalled += 1
@@ -57,10 +58,10 @@ final class LocationManageableMock: LocationManageable {
     }
 
     func setupForAuthorizationStatus(is authorizationStatus: CLAuthorizationStatus) {
-        authorizationStatusValue.value = authorizationStatus
+        self.authorizationStatus = authorizationStatus
     }
 
     func updateAuthorizationStatus(to status: CLAuthorizationStatus) {
-        authorizationStatusValue.value = status
+        authorizationStatus = status
     }
 }

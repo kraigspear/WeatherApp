@@ -37,8 +37,8 @@ final class MainViewModel: ObservableObject {
             self?.reload()
         }.store(in: &cancels)
 
-        locationManager.authorizationStatus.assign(to: \.authorizationStatus, on: self)
-            .store(in: &cancels)
+        assert(locationManager.delegate == nil, "Already has delegate?")
+        locationManager.delegate = self
     }
 
     // MARK: - Notifications
@@ -111,22 +111,12 @@ final class MainViewModel: ObservableObject {
      Weather data is shown for the current location.
      */
     private let locationManager: LocationManageable
-    private var authorizationStatus = CLAuthorizationStatus.notDetermined {
-        didSet {
-            os_log("authorizationStatus set, checkLocationPermissions",
-                   log: log,
-                   type: .debug)
-            reload()
-        }
-    }
 
     private var requestLocationCancel: AnyCancellable?
     private func requestLocation() {
         os_log("requestLocation",
                log: log,
                type: .debug)
-
-        precondition(authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways, "Invalid authorization status")
 
         if requestLocationCancel != nil {
             // There are various events that might trigger looking for the location including
@@ -200,7 +190,7 @@ final class MainViewModel: ObservableObject {
 
         isPermissionViewHidden = true
 
-        switch authorizationStatus {
+        switch locationManager.authorizationStatus {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()
         case .authorizedWhenInUse, .authorizedAlways:
@@ -254,5 +244,15 @@ final class MainViewModel: ObservableObject {
             }) { [weak self] currentConditions in
                 self?.currentConditions = currentConditions
             }
+    }
+}
+
+extension MainViewModel: LocationManagerDelegate {
+    func authStatusUpdated(to status: CLAuthorizationStatus) {
+        os_log("Auth status changed reloading",
+               log: log,
+               type: .debug,
+               status.rawValue)
+        reload()
     }
 }

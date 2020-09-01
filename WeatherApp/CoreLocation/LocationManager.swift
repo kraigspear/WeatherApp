@@ -18,12 +18,14 @@ typealias CurrentLocationPublisher = AnyPublisher<CLLocation?, Error>
 
  Access to permissions and the location of this device
  */
-protocol LocationManageable {
+protocol LocationManageable: AnyObject {
+    var delegate: LocationManagerDelegate? { get set }
+
     /// Returns a Boolean value indicating whether location services are enabled on the device.
     var locationServicesEnabled: Bool { get }
 
     /// Returns the app’s authorization status for using location services.
-    var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> { get }
+    var authorizationStatus: CLAuthorizationStatus { get }
 
     /// Requests the user’s permission to use location services while the app is in use.
     func requestWhenInUseAuthorization()
@@ -32,11 +34,23 @@ protocol LocationManageable {
     func requestLocation() -> AnyPublisher<CLLocation, Error>
 }
 
+protocol LocationManagerDelegate: AnyObject {
+    func authStatusUpdated(to: CLAuthorizationStatus)
+}
+
 /**
  Implementation of `LocationManageable`
  Access to permissions and the location of this device
  */
 final class LocationManager: NSObject, LocationManageable {
+    weak var delegate: LocationManagerDelegate?
+
+    private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined {
+        didSet {
+            delegate?.authStatusUpdated(to: authorizationStatus)
+        }
+    }
+
     private let log = LogContext.locationManager
 
     override init() {
@@ -52,11 +66,6 @@ final class LocationManager: NSObject, LocationManageable {
 
     /// The App's authorization status for using location services
     private var authorizationCurrentValueSubject = CurrentValueSubject<CLAuthorizationStatus, Never>(CLLocationManager.authorizationStatus())
-
-    /// The App's authorization status for using location services, publisher
-    var authorizationStatus: AnyPublisher<CLAuthorizationStatus, Never> {
-        authorizationCurrentValueSubject.eraseToAnyPublisher()
-    }
 
     /// Returns a Boolean value indicating whether location services are enabled on the device.
     var locationServicesEnabled: Bool {
@@ -92,7 +101,7 @@ extension LocationManager: CLLocationManagerDelegate {
                log: log,
                type: .debug,
                status.rawValue)
-        authorizationCurrentValueSubject.value = status
+        authorizationStatus = status
     }
 
     func locationManager(_: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
