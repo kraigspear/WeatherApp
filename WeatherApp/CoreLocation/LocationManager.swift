@@ -11,7 +11,7 @@ import CoreLocation
 import Foundation
 import os.log
 
-typealias CurrentLocationPublisher = AnyPublisher<CLLocation?, Error>
+typealias RequestLocationResult = (Result<CLLocation, Error>) -> Void
 
 /**
  Protocol to match CLLocationManager as much as possible for testing.
@@ -31,7 +31,10 @@ protocol LocationManageable: AnyObject {
     func requestWhenInUseAuthorization()
 
     /// Requests the one-time delivery of the user’s current location.
-    func requestLocation() -> AnyPublisher<CLLocation, Error>
+    func requestLocation(_ result: @escaping RequestLocationResult)
+    
+    /// Is a current search operation taking place
+    var isSearchingForLocation: Bool { get }
 }
 
 protocol LocationManagerDelegate: AnyObject {
@@ -82,16 +85,19 @@ final class LocationManager: NSObject, LocationManageable {
 
     // MARK: Requesting Location
 
-    private var requestLocationPublisher: PassthroughSubject<CLLocation, Error>?
-    public func requestLocation() -> AnyPublisher<CLLocation, Error> {
+    
+    private var requestLocationResult: RequestLocationResult?
+    public func requestLocation(_ result: @escaping RequestLocationResult) {
         os_log("requestLocation",
                log: log,
                type: .debug)
 
-        requestLocationPublisher = PassthroughSubject<CLLocation, Error>()
+        assert(requestLocationResult == nil, "Previous requestLocationResult")
+        requestLocationResult = result
         cllocationManager.requestLocation()
-        return requestLocationPublisher!.eraseToAnyPublisher()
     }
+    
+    var isSearchingForLocation: Bool { requestLocationResult != nil }
 }
 
 extension LocationManager: CLLocationManagerDelegate {
@@ -113,19 +119,20 @@ extension LocationManager: CLLocationManagerDelegate {
         // We're only processing the first location sent to `didUpdateLocations`
         // Publisher is closed after the first call
         defer {
-            requestLocationPublisher?.send(completion: .finished)
-            requestLocationPublisher = nil
+            assert(requestLocationResult != nil, "Nowhere to send to the result, should not be nil")
+            requestLocationResult = nil
         }
 
         guard let firstLocation = locations.first else {
             assertionFailure("didUpdateLocations called without at least one location?")
             return
         }
-
-        requestLocationPublisher?.send(firstLocation)
+        
+        requestLocationResult?(Result.success(firstLocation))
     }
 
     func locationManager(_: CLLocationManager, didFailWithError error: Error) {
-        requestLocationPublisher?.send(completion: .failure(error))
+        requestLocationResult?(Result.failure(error))
+        requestLocationResult = nil
     }
 }

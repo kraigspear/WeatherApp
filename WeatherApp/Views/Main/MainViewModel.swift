@@ -112,64 +112,48 @@ final class MainViewModel: ObservableObject {
      */
     private let locationManager: LocationManageable
 
-    private var requestLocationCancel: AnyCancellable?
     private func requestLocation() {
+        
         os_log("requestLocation",
                log: log,
                type: .debug)
 
-        if requestLocationCancel != nil {
-            // There are various events that might trigger looking for the location including
-            // 1. Forgound
-            // 2. Permission changes
-            // 3. Startup
-
-            // Calling locationManager.requestLocation will cancel if one is inflight, however
-            // it's more efficiant to ignore additinal request if one is active
-
-            os_log("Active requestLocation, skipping",
+        // Avoid searhing when another operation is taking place
+        guard !locationManager.isSearchingForLocation else {
+            os_log("Another search operation is taking place",
                    log: log,
                    type: .debug)
-
             return
         }
-
+        
         isBusy = true
-
-        requestLocationCancel = locationManager.requestLocation().sink(receiveCompletion: { [weak self] completed in
-
+        
+        locationManager.requestLocation {[weak self] result in
+            
+            assert(Thread.isMainThread)
+            
             guard let self = self else { return }
-
+            
             self.isBusy = false
-
-            defer { self.requestLocationCancel = nil }
-
-            switch completed {
-            case let .failure(error):
-
-                os_log("requestLocation completed with error: %s",
-                       log: self.log,
-                       type: .debug,
-                       error.localizedDescription)
-
-                self.errorSubject.send(error)
-            case .finished:
+            
+            switch result {
+            case let .success(location):
+                
                 os_log("requestLocation completed successfully",
-                       log: self.log,
-                       type: .debug)
+                log: self.log,
+                type: .debug)
+                
+                self.updateWeatherAt(coordinate: location.coordinate)
+            case let .failure(error):
+                self.errorSubject.send(error)
+                os_log("requestLocation completed with error: %s",
+                log: self.log,
+                type: .debug,
+                error.localizedDescription)
             }
-
-        }) { [weak self] currentLocation in
-            guard let self = self else { return }
-
-            os_log("current location retrived: lat: %f lng: %f",
-                   log: self.log,
-                   type: .debug,
-                   currentLocation.coordinate.latitude,
-                   currentLocation.coordinate.longitude)
-
-            self.updateWeatherAt(coordinate: currentLocation.coordinate)
+            
         }
+
     }
 
     // MARK: - Loading Data
