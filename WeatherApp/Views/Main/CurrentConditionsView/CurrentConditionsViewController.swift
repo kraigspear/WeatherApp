@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import UIKit
 
 /**
@@ -19,15 +18,9 @@ final class CurrentConditionsViewController: UIViewController {
     @IBOutlet private var temperatureLabel: UILabel!
     @IBOutlet private var locationLabel: UILabel!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
-
     @IBOutlet private var forecastButton: UIButton!
 
     // MARK: - Overrides
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        sinkToMainViewModel()
-    }
 
     override func prepare(for segue: UIStoryboardSegue, sender _: Any?) {
         guard let identifier = segue.identifier else { return }
@@ -46,8 +39,8 @@ final class CurrentConditionsViewController: UIViewController {
     // MARK: - ViewModel
 
     private var mainViewModel: MainViewModel!
-    /// Any publishers that should live as long as this ViewController
-    private var cancels = Set<AnyCancellable>()
+
+    private var observeViewStateChanged: NSKeyValueObservation?
 
     /**
      Setup the view from a calling ViewController
@@ -56,28 +49,18 @@ final class CurrentConditionsViewController: UIViewController {
      */
     func setup(mainViewModel: MainViewModel) {
         self.mainViewModel = mainViewModel
-    }
 
-    /// Wireup ViewModel properties for what is shown in this View
-    private func sinkToMainViewModel() {
-        guard !isUnitTest else { return }
+        let keyPath = \MainViewModel.viewState
+        observeViewStateChanged = mainViewModel.observe(keyPath) { [weak self] _, change in
 
-        mainViewModel.$temperature.sink { [weak self] temperature in
-            self?.temperatureLabel.text = temperature
-        }.store(in: &cancels)
-
-        mainViewModel.$locationName.sink { [weak self] locationName in
-            self?.locationLabel.text = locationName
-        }.store(in: &cancels)
-
-        mainViewModel.$isForecastButtonEnabled.sink { [weak self] isForecastButtonEnabled in
-            self?.forecastButton.isEnabled = isForecastButtonEnabled
-        }.store(in: &cancels)
-
-        mainViewModel.$isBusy.sink { [weak self] isBusy in
             guard let self = self else { return }
+            guard let viewState = change.newValue else { return }
 
-            if isBusy {
+            self.temperatureLabel.text = viewState.temperature
+            self.locationLabel.text = viewState.locationName
+            self.forecastButton.isEnabled = viewState.isForecastButtonEnabled
+
+            if viewState.isBusy {
                 if !self.activityIndicator.isAnimating {
                     self.activityIndicator.startAnimating()
                 }
@@ -86,7 +69,6 @@ final class CurrentConditionsViewController: UIViewController {
                     self.activityIndicator.stopAnimating()
                 }
             }
-
-        }.store(in: &cancels)
+        }
     }
 }

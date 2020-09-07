@@ -10,9 +10,11 @@ import Combine
 import os.log
 import UIKit
 
+typealias LoadImageCompletion = (UIImage) -> Void
 /// Loads condition image from https://openweathermap.org/current
 protocol ConditionImageLoadable {
-    func loadImageForForecast(at hour: ForecastAtHour) -> AnyPublisher<UIImage, Never>
+    func loadImageForForecast(at hour: ForecastAtHour,
+                              completion: @escaping LoadImageCompletion)
 }
 
 final class ConditionImageLoader {
@@ -44,9 +46,11 @@ final class ConditionImageLoader {
     ///
     /// - Parameter at: Hour of the forecast of the condition image
     /// - Returns: Publisher containing the loaded image (or default image on error)
-    func loadImageForForecast(at hour: ForecastAtHour) -> AnyPublisher<UIImage, Never> {
+    func loadImageForForecast(at hour: ForecastAtHour,
+                              completion: @escaping LoadImageCompletion) {
         guard let weather = hour.weather.first else {
-            return Just<UIImage>(ConditionImageLoader.defaultImage).eraseToAnyPublisher()
+            completion(ConditionImageLoader.defaultImage)
+            return
         }
 
         let urlStr = "https://openweathermap.org/img/wn/\(weather.icon)@2x.png"
@@ -57,7 +61,8 @@ final class ConditionImageLoader {
                    type: .debug,
                    urlStr)
 
-            return Just<UIImage>(cachedImage).eraseToAnyPublisher()
+            completion(cachedImage)
+            return
         }
 
         let url = URL(string: urlStr)!
@@ -72,16 +77,26 @@ final class ConditionImageLoader {
 
         let request = URLRequest(url: url)
 
-        return networkSession.loadData(from: request)
-            .map { data -> UIImage? in
-
-                if let image = UIImage(data: data) {
-                    cache[urlStr] = image
-                    return image
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            self.networkSession.loadImage(from: request) { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case let .failure(error):
+                        os_log("Error loading image with error: %{public}s",
+                               log: self.log,
+                               type: .error,
+                               error.localizedDescription)
+                        completion(ConditionImageLoader.defaultImage)
+                    case let .success(image):
+                        os_log("Success downloading image",
+                               log: self.log,
+                               type: .debug)
+                        cache[urlStr] = image
+                        completion(image)
+                    }
                 }
-
-                return nil
-            }.replaceNil(with: ConditionImageLoader.defaultImage)
-            .replaceError(with: ConditionImageLoader.defaultImage).eraseToAnyPublisher()
+            }
+        }
     }
 }

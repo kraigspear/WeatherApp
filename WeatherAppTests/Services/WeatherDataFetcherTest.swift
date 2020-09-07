@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import XCTest
 
@@ -25,12 +24,6 @@ final class WeatherDataFetcherTest: XCTestCase {
         weatherDataFetcher = WeatherDataFetcher(networkSession: networkSessionMock)
     }
 
-    override func tearDownWithError() throws {
-        fetchWeatherCancel = nil
-    }
-
-    private var fetchWeatherCancel: AnyCancellable?
-
     func testCurrentConditionsSuccess() throws {
         networkSessionMock.data = load(assetWithName: "CurrentConditions")
 
@@ -41,19 +34,15 @@ final class WeatherDataFetcherTest: XCTestCase {
 
         var receivedCurrentConditions: CurrentConditions?
 
-        fetchWeatherCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
-            .sink(receiveCompletion: { completed in
-
-                switch completed {
-                case .failure:
-                    XCTFail("Failure not expected")
-                case .finished:
-                    expectSuccess.fulfill()
-                }
-
-            }) { currentConditions in
-                receivedCurrentConditions = currentConditions
+        weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate) { result in
+            switch result {
+            case .failure:
+                XCTFail("Failure not expected")
+            case let .success(conditions):
+                receivedCurrentConditions = conditions
+                expectSuccess.fulfill()
             }
+        }
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectSuccess], timeout: 1))
         XCTAssertNotNil(receivedCurrentConditions)
@@ -67,19 +56,15 @@ final class WeatherDataFetcherTest: XCTestCase {
         let coordinate = CLLocationCoordinate2D(latitude: 42.96,
                                                 longitude: -85.67)
 
-        fetchWeatherCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
-            .sink(receiveCompletion: { completed in
+        weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate) { result in
 
-                switch completed {
-                case .failure:
-                    expectFailed.fulfill()
-                case .finished:
-                    XCTFail("Failure not expected")
-                }
-
-                   }) { _ in
-                XCTFail("Shouldn't have received value")
+            switch result {
+            case .failure:
+                expectFailed.fulfill()
+            case .success:
+                XCTFail("Failure not expected")
             }
+        }
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectFailed], timeout: 1))
     }
@@ -94,19 +79,16 @@ final class WeatherDataFetcherTest: XCTestCase {
 
         var receivedForecast: Forecast?
 
-        fetchWeatherCancel = weatherDataFetcher.fetchForecastForCoordinate(coordinate)
-            .sink(receiveCompletion: { completed in
+        weatherDataFetcher.fetchForecastForCoordinate(coordinate) { result in
 
-                switch completed {
-                case .failure:
-                    XCTFail("Failure not expected")
-                case .finished:
-                    expectSuccess.fulfill()
-                }
-
-            }) { hourlyForecast in
-                receivedForecast = hourlyForecast
+            switch result {
+            case .failure:
+                XCTFail("Failure not expected")
+            case let .success(forecast):
+                receivedForecast = forecast
+                expectSuccess.fulfill()
             }
+        }
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectSuccess], timeout: 1))
 

@@ -16,6 +16,28 @@ typealias FetchWeatherForCoordinateResult = Result<CurrentConditions, Error>
 typealias FetchHourlyForecastResult = Result<Forecast, Error>
 
 final class WeatherDataFetchableMock: WeatherDataFetchable {
+    func fetchCurrentConditionsForCoordinate(_: CLLocationCoordinate2D, completed: @escaping CurrentConditionsCompleted) {
+        switch fetchWeatherForCoordinateResult {
+        case let .failure(error):
+            completed(.failure(error))
+        case let .success(currentConditions):
+            completed(.success(currentConditions))
+        case .none:
+            fatalError("not set")
+        }
+    }
+
+    func fetchForecastForCoordinate(_: CLLocationCoordinate2D, completed: @escaping ForecastCompleted) {
+        switch fetchHourlyForecastResult {
+        case let .failure(error):
+            completed(.failure(error))
+        case let .success(forecast):
+            completed(.success(forecast))
+        case .none:
+            fatalError("not set")
+        }
+    }
+
     // MARK: - HourlyForecast
 
     private(set) var fetchHourlyForecastResult: FetchHourlyForecastResult!
@@ -24,37 +46,11 @@ final class WeatherDataFetchableMock: WeatherDataFetchable {
         fetchHourlyForecastResult = result
     }
 
-    func fetchForecastForCoordinate(_: CLLocationCoordinate2D) -> AnyPublisher<Forecast, Error> {
-        switch fetchHourlyForecastResult {
-        case let .success(hourlyForecast):
-            return Just<Forecast>(hourlyForecast)
-                .setFailureType(to: Error.self)
-                .eraseToAnyPublisher()
-        case let .failure(error):
-            return Fail<Forecast, Error>(error: error).eraseToAnyPublisher()
-        case .none:
-            fatalError("not set")
-        }
-    }
-
     // MARK: - Current Condtions
 
     private(set) var fetchWeatherForCoordinateResult: FetchWeatherForCoordinateResult!
 
     func setupForFetchWeatherForCoordinate(result: FetchWeatherForCoordinateResult) {
         fetchWeatherForCoordinateResult = result
-    }
-
-    func fetchCurrentConditionsForCoordinate(_: CLLocationCoordinate2D) -> AnyPublisher<CurrentConditions, Error> {
-        switch fetchWeatherForCoordinateResult {
-        case let .failure(error):
-            return Fail<CurrentConditions, Error>(error: error).eraseToAnyPublisher()
-        case let .success(currentConditions):
-            return Just<CurrentConditions>(currentConditions)
-                .setFailureType(to: Error.self)
-                .eraseToAnyPublisher()
-        case .none:
-            fatalError("not set")
-        }
     }
 }

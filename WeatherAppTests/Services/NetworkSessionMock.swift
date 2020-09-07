@@ -7,7 +7,7 @@
 //
 
 import Combine
-import Foundation
+import UIKit
 @testable import WeatherApp
 
 /// Mock for `NetworkSession` to allow testing
@@ -18,18 +18,26 @@ class NetworkSessionMock: NetworkSession {
 
     private(set) var loadDataCount = 0
 
-    func loadData(from _: URLRequest) -> AnyPublisher<Data, Error> {
+    func loadData(from _: URLRequest, completionHandler: @escaping LoadDataCompletion) {
         if let data = data {
             loadDataCount += 1
-            return Just<Data>(data)
-                .setFailureType(to: Error.self)
-                .eraseToAnyPublisher()
+            completionHandler(.success(data))
+            return
         }
 
         if let error = error {
-            return Fail<Data, Error>(error: error).eraseToAnyPublisher()
+            completionHandler(.failure(error))
+            return
         }
 
         fatalError("Missing data or error")
+    }
+
+    var loadDataModel: Decodable?
+
+    func loadImage(from _: URLRequest,
+                   completionHandler: @escaping ImageCompletion) {
+        let image = UIImage(data: data!)!
+        completionHandler(.success(image))
     }
 }

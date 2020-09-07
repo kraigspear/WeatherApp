@@ -6,56 +6,43 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
-import Combine
 import Foundation
 import os.log
 
 typealias NetworkResult = Result<Data, Error>
+typealias ImageCompletion = (Result<UIImage, Error>) -> Void
 typealias LoadDataCompletion = (NetworkResult) -> Void
+
+enum ImageCreateError: Error {
+    case failedToCreateImage
+}
 
 /// Loads data from the network via a Publisher
 /// Allows replacing a URLSession with a mock for UnitTest
 protocol NetworkSession: AnyObject {
     /// Load data from a URL request, providing a Publisher
     /// - Parameter request: Request to load
-    /// - Returns: Publisher with Data or Error
-    func loadData(from request: URLRequest) -> AnyPublisher<Data, Error>
+    /// - Parameter completionHandler: Result of loading data
+    func loadData(from request: URLRequest,
+                  completionHandler: @escaping LoadDataCompletion)
+
+    /*
+     Load an image from a URLRequest
+     - parameter from: Request to load from
+     - parameter completionHandler: Called with the result of loading an image
+     */
+    func loadImage(from request: URLRequest,
+                   completionHandler: @escaping ImageCompletion)
 }
 
 extension URLSession: NetworkSession {
-    /// Load data from a URL request, providing a Publisher
-    /// - Parameter from: Request to load
-    /// - Returns: Publisher with Data or Error
-    func loadData(from request: URLRequest) -> AnyPublisher<Data, Error> {
-        Future<Data, Error> { promise in
-
-            self.loadData(from: request) { result in
-
-                switch result {
-                case let .failure(error):
-                    os_log("LoadData with error: %{public}s",
-                           log: LogContext.network,
-                           type: .error,
-                           error.localizedDescription)
-                    promise(.failure(error))
-                case let .success(data):
-                    os_log("Success loading data",
-                           log: LogContext.network,
-                           type: .debug)
-                    promise(.success(data))
-                }
-            }
-
-        }.eraseToAnyPublisher()
-    }
-
     /// Load data using a closure
     ///   - Parameter from: Request to load
-    ///   - completionHandler: Closure to call with the result of the network operation
-    private func loadData(from request: URLRequest,
-                          completionHandler: @escaping LoadDataCompletion) {
+    ///   - Parameter completionHandler: Result of loading data
+    func loadData(from request: URLRequest,
+                  completionHandler: @escaping LoadDataCompletion) {
         let urlString = request.url!.absoluteString
 
         let logContext = LogContext.network
@@ -87,5 +74,21 @@ extension URLSession: NetworkSession {
         }
 
         task.resume()
+    }
+
+    func loadImage(from request: URLRequest,
+                   completionHandler: @escaping ImageCompletion) {
+        loadData(from: request) { result in
+            switch result {
+            case let .failure(error):
+                completionHandler(.failure(error))
+            case let .success(data):
+                if let image = UIImage(data: data) {
+                    completionHandler(.success(image))
+                } else {
+                    completionHandler(.failure(ImageCreateError.failedToCreateImage))
+                }
+            }
+        }
     }
 }

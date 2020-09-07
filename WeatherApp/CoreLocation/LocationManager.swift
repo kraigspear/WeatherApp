@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import Foundation
 import os.log
@@ -32,7 +31,7 @@ protocol LocationManageable: AnyObject {
 
     /// Requests the one-time delivery of the user’s current location.
     func requestLocation(_ result: @escaping RequestLocationResult)
-    
+
     /// Is a current search operation taking place
     var isSearchingForLocation: Bool { get }
 }
@@ -67,9 +66,6 @@ final class LocationManager: NSObject, LocationManageable {
 
     // MARK: Requesting Authorization for Location Services
 
-    /// The App's authorization status for using location services
-    private var authorizationCurrentValueSubject = CurrentValueSubject<CLAuthorizationStatus, Never>(CLLocationManager.authorizationStatus())
-
     /// Returns a Boolean value indicating whether location services are enabled on the device.
     var locationServicesEnabled: Bool {
         CLLocationManager.locationServicesEnabled()
@@ -85,7 +81,6 @@ final class LocationManager: NSObject, LocationManageable {
 
     // MARK: Requesting Location
 
-    
     private var requestLocationResult: RequestLocationResult?
     public func requestLocation(_ result: @escaping RequestLocationResult) {
         os_log("requestLocation",
@@ -96,7 +91,7 @@ final class LocationManager: NSObject, LocationManageable {
         requestLocationResult = result
         cllocationManager.requestLocation()
     }
-    
+
     var isSearchingForLocation: Bool { requestLocationResult != nil }
 }
 
@@ -127,7 +122,7 @@ extension LocationManager: CLLocationManagerDelegate {
             assertionFailure("didUpdateLocations called without at least one location?")
             return
         }
-        
+
         requestLocationResult?(Result.success(firstLocation))
     }
 

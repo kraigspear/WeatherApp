@@ -6,23 +6,35 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import UIKit
+
+typealias AppEnteredForegroundClosure = (() -> Void)?
 
 /// NotificationCenter notifications used in WeatherApp
 /// Allows sending notifications in Unit Test
-protocol NotificationPublishable {
+protocol NotificationPublishable: AnyObject {
     /// Called when the App has entered the foreground
-    var appWillEnterForeground: AnyPublisher<Void, Never> { get }
+    var appEnteredForeground: AppEnteredForegroundClosure { get set }
 }
 
 /// Implementation of `NotificationPublishable`
-final class NotificationPublishers: NotificationPublishable {
-    /// Wrapper around `UIApplication.willEnterForegroundNotification`
-    var appWillEnterForeground: AnyPublisher<Void, Never> {
-        NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)
-            .flatMap { _ -> AnyPublisher<Void, Never> in
-                Just<Void>(()).eraseToAnyPublisher()
-            }.eraseToAnyPublisher()
+final class NotificationPublishers: NSObject, NotificationPublishable {
+    var appEnteredForeground: AppEnteredForegroundClosure = nil
+
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(didEnterForeground),
+                                               name: UIApplication.willEnterForegroundNotification,
+                                               object: self)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        appEnteredForeground = nil
+    }
+
+    @objc func didEnterForeground(_: Notification) {
+        appEnteredForeground?()
     }
 }

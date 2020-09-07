@@ -22,18 +22,14 @@ final class ForecastTableViewCell: UITableViewCell {
     @IBOutlet var temperatureLabel: UILabel!
     @IBOutlet var conditionImageView: UIImageView!
 
-    private var imageCancel: AnyCancellable?
-
     func configure(_ forecast: ForecastDisplay) {
         dateTimeLabel.text = forecast.date
         temperatureLabel.text = forecast.temperature
         conditionImageView.image = UIImage(systemName: "timelapse")!
 
-        imageCancel = ConditionImageLoader.sharedInstance
-            .loadImageForForecast(at: forecast.hour)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] image in
-                self?.conditionImageView.image = image
-            }
+        ConditionImageLoader.sharedInstance.loadImageForForecast(at: forecast.hour) { [weak self] image in
+            assert(Thread.isMainThread, "Main Thread")
+            self?.conditionImageView.image = image
+        }
     }
 }

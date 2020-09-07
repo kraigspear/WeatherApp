@@ -6,17 +6,23 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import os.log
 import UIKit
 
+@objc class MainViewModelViewState: NSObject {
+    var isPermissionViewHidden = false
+    var temperature = ""
+    var locationName = ""
+    var isBusy = false
+    var isForecastButtonEnabled = false
+}
+
 /// Provides View Logic for the MainViewModel and child ViewControllers
-final class MainViewModel: ObservableObject {
+@objc final class MainViewModel: NSObject {
     private let log = LogContext.mainViewModel
 
-    /// Cancels for any Publishers that are to active for the lifecycle of the ViewModel
-    private var cancels = Set<AnyCancellable>()
+    var onError: ((Error) -> Void)?
 
     // MARK: - Init
 
@@ -33,9 +39,11 @@ final class MainViewModel: ObservableObject {
         self.notificationPublisher = notificationPublisher
         self.weatherDataFetcher = weatherDataFetcher
 
-        notificationPublisher.appWillEnterForeground.sink { [weak self] _ in
+        super.init()
+
+        notificationPublisher.appEnteredForeground = { [weak self] in
             self?.reload()
-        }.store(in: &cancels)
+        }
 
         assert(locationManager.delegate == nil, "Already has delegate?")
         locationManager.delegate = self
@@ -48,30 +56,7 @@ final class MainViewModel: ObservableObject {
 
     // MARK: - View Properties
 
-    /**
-     Since this App requries knowing the current location
-     A embedded view is shown asking for permissions if they
-     have not been granted
-     */
-    @Published var isPermissionViewHidden = false
-    /// Temperature to display in the View
-    @Published var temperature = ""
-    /// The name of the location for the conditions being displayed
-    @Published var locationName = ""
-    /// Should the visual state showing "busy" be shown
-    @Published var isBusy = false
-    /// Bool that indicates that if the forecast button should be enabled
-    @Published var isForecastButtonEnabled = false
-
-    // MARK: - Error Handeling
-
-    /// PassthroughSubject for errors that should be shown on the view
-    private var errorSubject = PassthroughSubject<Error?, Never>()
-
-    /// Errors that should be shown on the view
-    public var error: AnyPublisher<Error?, Never> {
-        errorSubject.eraseToAnyPublisher()
-    }
+    @objc private(set) dynamic var viewState = MainViewModelViewState()
 
     // MARK: - Weather
 
@@ -93,8 +78,10 @@ final class MainViewModel: ObservableObject {
      - parameter currentConditions: Conditions value to populate
      */
     private func populate(currentConditions: CurrentConditions) {
-        temperature = "\(Int(currentConditions.main.temperature))℉"
-        locationName = currentConditions.locationName
+        let viewState = self.viewState
+        viewState.temperature = "\(Int(currentConditions.main.temperature))℉"
+        viewState.locationName = currentConditions.locationName
+        self.viewState = viewState
     }
 
     // MARK: - Location
@@ -102,7 +89,7 @@ final class MainViewModel: ObservableObject {
     /// Coordinate of the location that has been loaded
     private(set) var loadedCoordinate: CLLocationCoordinate2D? {
         didSet {
-            isForecastButtonEnabled = loadedCoordinate != nil
+            viewState.isForecastButtonEnabled = loadedCoordinate != nil
         }
     }
 
@@ -113,7 +100,6 @@ final class MainViewModel: ObservableObject {
     private let locationManager: LocationManageable
 
     private func requestLocation() {
-        
         os_log("requestLocation",
                log: log,
                type: .debug)
@@ -125,35 +111,33 @@ final class MainViewModel: ObservableObject {
                    type: .debug)
             return
         }
-        
-        isBusy = true
-        
-        locationManager.requestLocation {[weak self] result in
-            
+
+        viewState.isBusy = true
+
+        locationManager.requestLocation { [weak self] result in
+
             assert(Thread.isMainThread)
-            
+
             guard let self = self else { return }
-            
-            self.isBusy = false
-            
+
+            self.viewState.isBusy = false
+
             switch result {
             case let .success(location):
-                
+
                 os_log("requestLocation completed successfully",
-                log: self.log,
-                type: .debug)
-                
+                       log: self.log,
+                       type: .debug)
+
                 self.updateWeatherAt(coordinate: location.coordinate)
             case let .failure(error):
-                self.errorSubject.send(error)
+                self.onError?(error)
                 os_log("requestLocation completed with error: %s",
-                log: self.log,
-                type: .debug,
-                error.localizedDescription)
+                       log: self.log,
+                       type: .debug,
+                       error.localizedDescription)
             }
-            
         }
-
     }
 
     // MARK: - Loading Data
@@ -168,11 +152,11 @@ final class MainViewModel: ObservableObject {
                    log: log,
                    type: .debug)
 
-            isPermissionViewHidden = false
+            viewState.isPermissionViewHidden = false
             return // With location permissions not being on there is no need to check App permissions
         }
 
-        isPermissionViewHidden = true
+        viewState.isPermissionViewHidden = true
 
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -188,46 +172,42 @@ final class MainViewModel: ObservableObject {
             os_log("Location permissions denied or restricted, showing permissions view",
                    log: log,
                    type: .debug)
-            isPermissionViewHidden = false
+            viewState.isPermissionViewHidden = false
         @unknown default:
             fatalError("Handle new authorizationStatus")
         }
     }
 
-    private var fetchWeatherForCoordinateCancel: AnyCancellable?
     private func updateWeatherAt(coordinate: CLLocationCoordinate2D) {
         os_log("Fetching latest current conditions",
                log: log,
                type: .debug)
 
-        isBusy = true
+        viewState.isBusy = true
         loadedCoordinate = nil
 
-        fetchWeatherForCoordinateCancel = weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completed in
-
-                guard let self = self else { return }
-
-                self.isBusy = false
-
-                switch completed {
-                case let .failure(error):
-                    os_log("Error getting CurrentConditions with error: %{public}s",
-                           log: self.log,
-                           type: .error,
-                           error.localizedDescription)
-                    self.errorSubject.send(error)
-                case .finished:
-                    os_log("Success getting current conditions",
-                           log: self.log,
-                           type: .debug)
-                    self.loadedCoordinate = coordinate
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            self.weatherDataFetcher.fetchCurrentConditionsForCoordinate(coordinate) { result in
+                DispatchQueue.main.async {
+                    self.viewState.isBusy = false
+                    switch result {
+                    case let .success(currentConditions):
+                        os_log("Success getting current conditions",
+                               log: self.log,
+                               type: .debug)
+                        self.loadedCoordinate = coordinate
+                        self.currentConditions = currentConditions
+                    case let .failure(error):
+                        os_log("Error getting CurrentConditions with error: %{public}s",
+                               log: self.log,
+                               type: .error,
+                               error.localizedDescription)
+                        self.onError?(error)
+                    }
                 }
-
-            }) { [weak self] currentConditions in
-                self?.currentConditions = currentConditions
             }
+        }
     }
 }
 

@@ -13,9 +13,6 @@ import Foundation
 @testable import WeatherApp
 
 final class LocationManageableMock: LocationManageable {
-    
-    
-    
     weak var delegate: LocationManagerDelegate?
 
     var authorizationStatus: CLAuthorizationStatus = .notDetermined {
@@ -41,11 +38,11 @@ final class LocationManageableMock: LocationManageable {
     private var requestLocationResult: RequestLocationResult?
     func requestLocation(_ result: @escaping RequestLocationResult) {
         requestLocationCalled += 1
-        self.requestLocationResult = result
+        requestLocationResult = result
     }
-    
+
     var isSearchingForLocation: Bool { requestLocationResult != nil }
-    
+
     private var locationServicesEnabledValue = false
     private(set) var locationServicesEnabledCalled = 0
     var locationServicesEnabled: Bool {

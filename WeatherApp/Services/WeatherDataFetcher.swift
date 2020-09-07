@@ -6,25 +6,29 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import Foundation
 import os.log
+
+typealias CurrentConditionsCompleted = (Result<CurrentConditions, Error>) -> Void
+typealias ForecastCompleted = (Result<Forecast, Error>) -> Void
 
 /// Fetches weather data from the Weather Service
 protocol WeatherDataFetchable {
     /**
      Fetch the current conditions at a given coordinate
      - parameter coordinate: Coordinate of the location to retrieve the current conditions
-     - returns: Publisher with CurrentConditions or an Error
+     - parameter result: Result of getting the current conditions
      **/
-    func fetchCurrentConditionsForCoordinate(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<CurrentConditions, Error>
+    func fetchCurrentConditionsForCoordinate(_ coordinate: CLLocationCoordinate2D,
+                                             completed: @escaping CurrentConditionsCompleted)
     /**
      Fetch the forecast at a given coordinate
      - parameter coordinate: Coordinate of the location to retrieve the forecast
-     - returns: Publisher with the Forecast or Error
+     - parameter result: Result of getting the forecast
      */
-    func fetchForecastForCoordinate(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<Forecast, Error>
+    func fetchForecastForCoordinate(_ coordinate: CLLocationCoordinate2D,
+                                    completed: @escaping ForecastCompleted)
 }
 
 /// Fetches weather data from the Weather Service
@@ -54,14 +58,15 @@ final class WeatherDataFetcher: WeatherDataFetchable {
      - parameter coordinate: Coordinate of the location to retrieve the current conditions
      - returns: Publisher with CurrentConditions or an Error
      **/
-    func fetchCurrentConditionsForCoordinate(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<CurrentConditions, Error> {
+    func fetchCurrentConditionsForCoordinate(_ coordinate: CLLocationCoordinate2D,
+                                             completed: @escaping CurrentConditionsCompleted) {
         os_log("fetchWeatherForCoordinate: %f,%f",
                log: log,
                type: .debug,
                coordinate.latitude,
                coordinate.longitude)
 
-        func urlRequest(_ coordinate: CLLocationCoordinate2D) -> URLRequest {
+        func urlRequest(from coordinate: CLLocationCoordinate2D) -> URLRequest {
             let urlStr = "https://api.openweathermap.org/data/2.5/weather?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&appid=\(appId)&units=imperial"
 
             os_log("URL: %s",
@@ -72,9 +77,20 @@ final class WeatherDataFetcher: WeatherDataFetchable {
             return URLRequest(url: URL(string: urlStr)!)
         }
 
-        return networkSession.loadData(from: urlRequest(coordinate))
-            .decode(type: CurrentConditions.self, decoder: JSONDecoder())
-            .eraseToAnyPublisher()
+        networkSession.loadData(from: urlRequest(from: coordinate)) { result in
+
+            switch result {
+            case let .failure(error):
+                completed(.failure(error))
+            case let .success(data):
+                do {
+                    let currentConditions = try JSONDecoder().decode(CurrentConditions.self, from: data)
+                    completed(.success(currentConditions))
+                } catch {
+                    completed(.failure(error))
+                }
+            }
+        }
     }
 
     /**
@@ -82,14 +98,15 @@ final class WeatherDataFetcher: WeatherDataFetchable {
      - parameter coordinate: Coordinate of the location to retrieve the forecast
      - returns: Publisher with the Forecast or Error
      */
-    func fetchForecastForCoordinate(_ coordinate: CLLocationCoordinate2D) -> AnyPublisher<Forecast, Error> {
+    func fetchForecastForCoordinate(_ coordinate: CLLocationCoordinate2D,
+                                    completed: @escaping ForecastCompleted) {
         os_log("fetchForecastForCoordinate: %f,%f",
                log: log,
                type: .debug,
                coordinate.latitude,
                coordinate.longitude)
 
-        func urlRequest(_ coordinate: CLLocationCoordinate2D) -> URLRequest {
+        func urlRequest(from coordinate: CLLocationCoordinate2D) -> URLRequest {
             let urlStr = "https://api.openweathermap.org/data/2.5/forecast?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&appid=\(appId)&units=imperial"
 
             os_log("URL: %s",
@@ -100,8 +117,25 @@ final class WeatherDataFetcher: WeatherDataFetchable {
             return URLRequest(url: URL(string: urlStr)!)
         }
 
-        return networkSession.loadData(from: urlRequest(coordinate))
-            .decode(type: Forecast.self, decoder: JSONDecoder())
-            .eraseToAnyPublisher()
+        networkSession.loadData(from: urlRequest(from: coordinate)) { result in
+
+            switch result {
+            case let .failure(error):
+                completed(.failure(error))
+            case let .success(data):
+                DispatchQueue.global().async {
+                    do {
+                        let forecast = try JSONDecoder().decode(Forecast.self, from: data)
+                        DispatchQueue.main.async {
+                            completed(.success(forecast))
+                        }
+                    } catch {
+                        DispatchQueue.main.async {
+                            completed(.failure(error))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
