@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 @testable import WeatherApp
 import XCTest
@@ -19,7 +18,7 @@ final class ForecastViewModelTest: XCTestCase {
     private var weatherDataFetchableMock: WeatherDataFetchableMock!
 
     private var forecastViewModel: ForecastViewModel!
-    private var loadCancel: AnyCancellable?
+    private var observeViewStateChanged: NSKeyValueObservation?
 
     override func setUpWithError() throws {
         weatherDataFetchableMock = WeatherDataFetchableMock()
@@ -27,7 +26,7 @@ final class ForecastViewModelTest: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        loadCancel = nil
+        observeViewStateChanged = nil
     }
 
     func testForecastDisplay() throws {
@@ -55,13 +54,14 @@ final class ForecastViewModelTest: XCTestCase {
 
         var loadedForecast: Forecast?
 
-        loadCancel = forecastViewModel.$hourlyForecast.sink { forecast in
-            if let forecast = forecast {
-                loadedForecast = forecast
+        XCTAssertNil(forecastViewModel.viewState.hourlyForecast)
+        observeViewStateChanged = forecastViewModel.observe(\ForecastViewModel.viewState) { viewModel, change in
+            if let updatedForecast = viewModel.viewState.hourlyForecast {
+                loadedForecast = updatedForecast
                 expect.fulfill()
             }
         }
-
+        
         forecastViewModel.loadForecastFor(coordinate: coordinate)
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expect], timeout: 1))
@@ -80,14 +80,14 @@ final class ForecastViewModelTest: XCTestCase {
 
         var receivedError: Error?
 
-        loadCancel = forecastViewModel.$error.sink { error in
-
-            if let error = error {
-                receivedError = error
-                expect.fulfill()
-            }
-        }
-
+        XCTAssertNil(forecastViewModel.viewState.error)
+        observeViewStateChanged = forecastViewModel.observe(\ForecastViewModel.viewState) { viewModel, change in
+            if let error = viewModel.viewState.error {
+               receivedError = error
+               expect.fulfill()
+           }
+       }
+        
         forecastViewModel.loadForecastFor(coordinate: coordinate)
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expect], timeout: 1))

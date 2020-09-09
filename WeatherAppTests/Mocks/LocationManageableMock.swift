@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import Foundation
 
@@ -22,8 +21,6 @@ final class LocationManageableMock: LocationManageable {
     }
 
     private(set) var requestLocationCalled = 0
-
-    private var requestLocationPassthroughSubject = PassthroughSubject<CLLocation, Error>()
 
     func requestLocationSuccess(location: CLLocation) {
         requestLocationResult!(.success(location))

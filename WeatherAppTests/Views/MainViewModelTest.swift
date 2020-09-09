@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import XCTest
 
@@ -22,6 +21,9 @@ final class MainViewModelTest: XCTestCase {
     private var weatherDataFetchMock: WeatherDataFetchableMock!
 
     private var mainViewModel: MainViewModel!
+    private var observeViewStateChanged: NSKeyValueObservation?
+
+    private let keyPath = \MainViewModel.viewState
 
     override func setUpWithError() throws {
         locationManageableMock = LocationManageableMock()
@@ -35,34 +37,33 @@ final class MainViewModelTest: XCTestCase {
 
     override func tearDown() {
         errorCancel = nil
-        temperatureSetCancel = nil
-        isEnabledCancel = nil
+        observeViewStateChanged = nil
     }
 
     func testLocationServiceTurnedOffIsShownWhenLocationServicesAreNotOn() {
         locationManageableMock.setupForlocationServicesEnabled(false)
         mainViewModel.reload()
-        XCTAssertFalse(mainViewModel.isPermissionViewHidden)
+        XCTAssertFalse(mainViewModel.viewState.isPermissionViewHidden)
     }
 
     func testLocationServiceTurnedOffIsNotShownWhenLocationServicesAreOn() {
         locationManageableMock.setupForlocationServicesEnabled(true)
         mainViewModel.reload()
-        XCTAssertTrue(mainViewModel.isPermissionViewHidden)
+        XCTAssertTrue(mainViewModel.viewState.isPermissionViewHidden)
     }
 
     func testLocationServiceTurnedOffIsShownWhenPermissionsDenied() {
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .denied)
         mainViewModel.reload()
-        XCTAssertFalse(mainViewModel.isPermissionViewHidden)
+        XCTAssertFalse(mainViewModel.viewState.isPermissionViewHidden)
     }
 
     func testLocationServiceTurnedOffIsShownWhenPermissionsRestricted() {
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .restricted)
         mainViewModel.reload()
-        XCTAssertFalse(mainViewModel.isPermissionViewHidden)
+        XCTAssertFalse(mainViewModel.viewState.isPermissionViewHidden)
     }
 
     /**
@@ -133,7 +134,6 @@ final class MainViewModelTest: XCTestCase {
         XCTAssertEqual(1, locationManageableMock.requestLocationCalled)
     }
 
-    private var temperatureSetCancel: AnyCancellable?
     /**
      1. Location manager provides a location
      2. Weather data is retirved for that location
@@ -154,8 +154,8 @@ final class MainViewModelTest: XCTestCase {
 
         let expectTemperatureSet = expectation(description: "temperatureSet")
 
-        temperatureSetCancel = mainViewModel.$temperature.sink { temperature in
-            if temperature == "70℉" {
+        observeViewStateChanged = mainViewModel.observe(keyPath) { viewModel, _ in
+            if viewModel.viewState.temperature == "70℉" {
                 expectTemperatureSet.fulfill()
             }
         }
@@ -179,7 +179,7 @@ final class MainViewModelTest: XCTestCase {
 
         let expectError = expectation(description: "error")
 
-        errorCancel = mainViewModel.error.sink { _ in
+        mainViewModel.onError = { _ in
             expectError.fulfill()
         }
 
@@ -188,8 +188,6 @@ final class MainViewModelTest: XCTestCase {
 
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectError], timeout: 1))
     }
-
-    private var errorCancel: AnyCancellable?
 
     func testErrorIsReceivedWhenRequestLocationFails() {
         enum RequestError: Error {
@@ -201,7 +199,7 @@ final class MainViewModelTest: XCTestCase {
 
         let expectError = expectation(description: "error")
 
-        errorCancel = mainViewModel.error.sink { _ in
+        mainViewModel.onError = { _ in
             expectError.fulfill()
         }
 
@@ -210,7 +208,6 @@ final class MainViewModelTest: XCTestCase {
         XCTAssertEqual(.completed, XCTWaiter().wait(for: [expectError], timeout: 1))
     }
 
-    private var isEnabledCancel: AnyCancellable?
     func testForecastButtonIsDisabledWhenDataIsLoading() {
         locationManageableMock.setupForlocationServicesEnabled(true)
         locationManageableMock.setupForAuthorizationStatus(is: .authorizedWhenInUse)
@@ -226,9 +223,12 @@ final class MainViewModelTest: XCTestCase {
 
         let expectedEnabled = expectation(description: "enabled")
 
-        isEnabledCancel = mainViewModel.$isForecastButtonEnabled.sink { isEnabled in
+        XCTAssertFalse(mainViewModel.viewState.isForecastButtonEnabled)
 
-            if isEnabled { expectedEnabled.fulfill() }
+        observeViewStateChanged = mainViewModel.observe(keyPath) { viewModel, _ in
+            if viewModel.viewState.isForecastButtonEnabled {
+                expectedEnabled.fulfill()
+            }
         }
 
         mainViewModel.reload()

@@ -10,16 +10,25 @@ import CoreLocation
 import Foundation
 import os.log
 
-final class ForecastViewModel: ObservableObject {
+@objc class ForecastViewModelViewState: NSObject {
+    var hourlyForecast: Forecast?
+    var error: Error?
+}
+
+@objc final class ForecastViewModel: NSObject {
     private let log = LogContext.forecastViewModel
 
     /// Provides the forecast
     private let weatherDataFetcher: WeatherDataFetchable
 
-    /// Hourly Forecast to show in Forecastt cell
-    @Published var hourlyForecast: Forecast?
-    @Published var error: Error?
-
+    @objc dynamic var viewState = ForecastViewModelViewState() {
+        didSet {
+            os_log("viewState set",
+                   log: log,
+                   type: .debug)
+        }
+    }
+    
     init(weatherDataFetcher: WeatherDataFetchable = WeatherDataFetcher()) {
         self.weatherDataFetcher = weatherDataFetcher
     }
@@ -42,12 +51,16 @@ final class ForecastViewModel: ObservableObject {
                                log: self.log,
                                type: .error,
                                error.localizedDescription)
-                        self.error = error
+                        let viewState = self.viewState
+                        viewState.error = error
+                        self.viewState = viewState
                     case let .success(forecast):
                         os_log("Success loading forecast",
                                log: self.log,
                                type: .debug)
-                        self.hourlyForecast = forecast
+                        let viewState = self.viewState
+                        viewState.hourlyForecast = forecast
+                        self.viewState = viewState
                     }
                 }
             }

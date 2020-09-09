@@ -6,7 +6,6 @@
 //  Copyright © 2020 SpearWare. All rights reserved.
 //
 
-import Combine
 import CoreLocation
 import UIKit
 
@@ -21,15 +20,19 @@ final class ForecastViewController: UITableViewController {
         }
     }
 
-    private var cancels = Set<AnyCancellable>()
-
+    private var observeViewStateChanged: NSKeyValueObservation?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = NSLocalizedString("5 Day Forecast", comment: "")
 
         precondition(coordinate != nil, "coordinate should be set prior to ForecastViewController loading")
 
-        viewModel.$hourlyForecast.assign(to: \.hourlyForecast, on: self).store(in: &cancels)
+        let keyPath = \ForecastViewModel.viewState
+        observeViewStateChanged = viewModel.observe(keyPath) { [weak self] viewModel, change in
+            guard let self = self else { return }
+            self.hourlyForecast = viewModel.viewState.hourlyForecast
+        }
 
         viewModel.loadForecastFor(coordinate: coordinate!)
     }
