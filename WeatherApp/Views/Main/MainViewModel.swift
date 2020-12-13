@@ -10,11 +10,19 @@ import CoreLocation
 import os.log
 import UIKit
 
+/**
+ State that can change that the view should reflect
+ */
 @objc class MainViewModelViewState: NSObject {
+    /// Is the view that ask for location permission hidden
     var isPermissionViewHidden = false
+    /// The current temperature to display
     var temperature = ""
+    /// The name of the location
     var locationName = ""
+    /// Is the View loading data
     var isBusy = false
+    /// Is the button that allows viewwing the forecast enabled?
     var isForecastButtonEnabled = false
 }
 
@@ -22,6 +30,7 @@ import UIKit
 @objc final class MainViewModel: NSObject {
     private let log = LogContext.mainViewModel
 
+    /// Called when an error should be shown
     var onError: ((Error) -> Void)?
 
     // MARK: - Init
